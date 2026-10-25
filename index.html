@@ -53,7 +53,7 @@
         }
         /* 匯出 PDF / 列印專用樣式 */
         @media print {
-            header, nav, button, .no-print, #modal, #imageModal {
+            header, nav, button, .no-print, #modal, #imageModal, #welcomeModal {
                 display: none !important;
             }
             body {
@@ -84,12 +84,15 @@
     <header class="bg-gradient-to-r from-pink-500 via-pink-400 to-rose-400 text-white shadow-md">
         <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
-                <div class="p-2.5 bg-white/20 rounded-2xl backdrop-blur-sm">
+                <div class="p-2.5 bg-white/20 rounded-2xl backdrop-blur-sm cursor-pointer" onclick="openWelcomeModal()" title="使用說明與備份提醒">
                     <i class="fa-solid fa-plane-departure text-2xl text-white"></i>
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold tracking-wide">旅遊行程規劃器</h1>
-                    <p class="text-xs text-pink-100">輕鬆打造屬於你的完美旅程</p>
+                    <p class="text-xs text-pink-100 flex items-center gap-1">
+                        <span>輕鬆打造你的專屬旅程</span>
+                        <button onclick="openWelcomeModal()" class="underline hover:text-white ml-1 text-[11px]"><i class="fa-solid fa-circle-info mr-0.5"></i>使用說明</button>
+                    </p>
                 </div>
             </div>
 
@@ -115,9 +118,18 @@
 
                 <div class="h-5 w-[1px] bg-white/30 mx-1 hidden sm:block"></div>
 
+                <!-- 備份與匯出按鈕群 -->
+                <button onclick="exportJSON()" title="將所有行程下載備份成 JSON 檔案" class="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg text-sm font-medium transition flex items-center gap-1">
+                    <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">備份</span>
+                </button>
+                <button onclick="document.getElementById('importFile').click()" title="匯入備份檔案" class="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg text-sm font-medium transition flex items-center gap-1">
+                    <i class="fa-solid fa-upload"></i> <span class="hidden sm:inline">還原</span>
+                </button>
+                <input type="file" id="importFile" accept=".json" onchange="importJSON(event)" class="hidden">
+
                 <!-- 匯出 PDF 按鈕 -->
                 <button onclick="exportToPDF()" class="px-3.5 py-1.5 bg-white text-pink-600 font-semibold rounded-lg text-sm shadow-md hover:bg-pink-50 transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-file-pdf"></i> 匯出 PDF
+                    <i class="fa-solid fa-file-pdf"></i> PDF
                 </button>
             </div>
         </div>
@@ -155,8 +167,35 @@
 
     <!-- 頁尾 Footer -->
     <footer class="bg-white border-t border-pink-100 py-4 text-center text-xs text-pink-400 no-print mt-auto">
-        <p>旅遊行程規劃器 &copy; Travel Planner by Jayla </p>
+        <p>旅遊行程規劃器 &copy; Travel Planner by Jayla Kao</p>
     </footer>
+
+    <!-- 初次進入 / 說明彈跳視窗 (Modal) -->
+    <div id="welcomeModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-pink-200 space-y-4 relative animate-fade-in">
+            <div class="flex items-center gap-3 text-pink-600">
+                <div class="p-3 bg-pink-100 rounded-2xl">
+                    <i class="fa-solid fa-shield-heart text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800">安心使用與資料保護提醒</h3>
+                    <p class="text-xs text-pink-500 font-medium">請詳細閱讀以下重要事項 💖</p>
+                </div>
+            </div>
+
+            <div class="space-y-3 text-xs text-slate-600 leading-relaxed bg-pink-50/60 p-3.5 rounded-xl border border-pink-100">
+                <p>🔒 <strong>隱私安全承諾：</strong><br>本網站為純前端靜態網頁，<strong>後台伺服器不會存取或收集你的任何編輯內容與個人資料</strong>。所有的行程、照片與備註都僅安全地保存在你當前使用的瀏覽器本機 (`localStorage`) 中。</p>
+                
+                <p>⚠️ <strong>重要防範提醒：</strong><br>1. <strong>請不要隨意清除瀏覽器快取或網站資料</strong>，以免資料被清空。<br>2. <strong>請務必定期點擊頂部的「備份」按鈕</strong>，將行程下載儲存為 JSON 檔案。若更換手機、電腦或不幸清除快取時，才能透過「還原」按鈕完美復原！</p>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button onclick="closeWelcomeModal()" class="w-full py-2.5 bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-xl text-sm transition shadow-sm">
+                    我知道了，開始規劃行程！
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- 新增 / 編輯行程 Modal 彈窗 -->
     <div id="modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
@@ -286,7 +325,22 @@
             loadFromLocalStorage();
             renderProjectSelect();
             renderApp();
+
+            // 檢查是否為首次造訪，若無紀錄則彈出歡迎/說明視窗
+            if (!localStorage.getItem('pink_travel_welcomed')) {
+                openWelcomeModal();
+            }
         });
+
+        // --- 彈跳視窗控制 ---
+        function openWelcomeModal() {
+            document.getElementById('welcomeModal').classList.remove('hidden');
+        }
+
+        function closeWelcomeModal() {
+            localStorage.setItem('pink_travel_welcomed', 'true');
+            document.getElementById('welcomeModal').classList.add('hidden');
+        }
 
         // --- 本地儲存 (localStorage) ---
         function saveToLocalStorage() {
@@ -364,6 +418,48 @@
                 ]
             };
             saveToLocalStorage();
+        }
+
+        // --- JSON 備份與還原功能 ---
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `travel_planner_backup_${new Date().toISOString().slice(0, 10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (importedData && importedData.projects && Array.isArray(importedData.projects)) {
+                        if (confirm('匯入備份將會覆蓋當前所有行程資料，確定要繼續嗎？')) {
+                            appData = importedData;
+                            if (!appData.currentProjectId && appData.projects.length > 0) {
+                                appData.currentProjectId = appData.projects[0].id;
+                            }
+                            currentActiveDayIndex = 0;
+                            saveToLocalStorage();
+                            renderProjectSelect();
+                            renderApp();
+                            alert('行程還原成功！🎉');
+                        }
+                    } else {
+                        alert('檔案格式錯誤，無法識別為有效的備份檔。');
+                    }
+                } catch(err) {
+                    alert('解析 JSON 檔案失敗，請確認檔案格式是否正確。');
+                }
+                event.target.value = ''; // 重置 file input
+            };
+            reader.readAsText(file);
         }
 
         // --- 專案管理功能 ---
@@ -479,7 +575,6 @@
                 const costStr = item.cost.trim();
                 if (!costStr) return;
 
-                // 提取貨幣符號/前綴（例如 ₩, NT$, $, 円）與數字
                 const match = costStr.match(/^([^\d\s,]+)?\s*([\d,]+(\.\d+)?)\s*([^\d\s,]+)?$/);
                 if (match) {
                     const prefix = match[1] || '';
@@ -492,7 +587,6 @@
                         hasNumber = true;
                     }
                 } else {
-                    // 若無特定格式，嘗試合併數字
                     const numOnly = parseFloat(costStr.replace(/[^\d.]/g, ''));
                     if (!isNaN(numOnly)) {
                         totals['元'] = (totals['元'] || 0) + numOnly;
@@ -503,7 +597,6 @@
 
             if (!hasNumber) return '0';
 
-            // 組合多貨幣統整字串
             return Object.entries(totals)
                 .map(([curr, amt]) => `${curr === '元' ? '' : curr} ${amt.toLocaleString()}`)
                 .join(' + ');
@@ -763,7 +856,6 @@
             const cost = document.getElementById('itemCost').value.trim();
             const notes = document.getElementById('itemNotes').value.trim();
 
-            // 收集連結
             const links = [];
             const linkRows = document.querySelectorAll('.link-input-row');
             linkRows.forEach(row => {
@@ -775,7 +867,6 @@
             });
 
             if (itemId) {
-                // 修改
                 const item = day.items.find(i => i.id === itemId);
                 if (item) {
                     item.title = title;
@@ -788,7 +879,6 @@
                     item.images = [...tempImages];
                 }
             } else {
-                // 新增
                 const newItem = {
                     id: 'item_' + Date.now(),
                     title,
