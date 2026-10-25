@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
@@ -25,9 +25,11 @@
                             600: '#0284c7',
                             700: '#0369a1',
                         },
-                        secondary: {
-                            500: '#14b8a6',
-                            600: '#0d9488',
+                        fandom: {
+                            100: '#fae8ff',
+                            200: '#f5d0fe',
+                            600: '#c026d3',
+                            700: '#a21caf',
                         }
                     },
                     fontFamily: {
@@ -70,7 +72,7 @@
                 </div>
                 <div>
                     <h1 class="text-xl sm:text-2xl font-bold tracking-tight">旅遊行程規劃器</h1>
-                    <p class="text-xs text-sky-100 opacity-90">輕鬆規劃自由行，隨時隨地記錄點滴</p>
+                    <p class="text-xs text-sky-100 opacity-90">自由行、追星踩點、美食行程全記錄</p>
                 </div>
             </div>
             
@@ -144,7 +146,7 @@
                 <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs text-slate-400 font-medium mb-1">天數名稱</label>
-                        <input type="text" id="dayTitleInput" onchange="updateDayMeta()" placeholder="如：Day 1 高雄輕旅行" 
+                        <input type="text" id="dayTitleInput" onchange="updateDayMeta()" placeholder="如：Day 1 首爾追星與咖啡廳" 
                                class="w-full px-3 py-1.5 text-base font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 focus:bg-white outline-none transition">
                     </div>
                     <div>
@@ -168,7 +170,7 @@
 
             <!-- 時間軸行程清單 -->
             <div id="eventsTimeline" class="relative space-y-4">
-                <!-- 行程卡片由 JS 動態動態寫入 -->
+                <!-- 行程卡片由 JS 動態寫入 -->
             </div>
         </div>
 
@@ -180,10 +182,10 @@
     </footer>
 
     <!-- 新增/編輯行程 Modal 彈窗 -->
-    <div id="eventModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden transform transition-all">
+    <div id="eventModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-xl max-w-xl w-full my-8 overflow-hidden transform transition-all max-h-[90vh] flex flex-col">
             <!-- Modal Header -->
-            <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+            <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center shrink-0">
                 <h3 class="text-base font-bold text-slate-800" id="modalTitle">新增行程項目</h3>
                 <button onclick="closeEventModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
                     <i class="fa-solid fa-xmark text-lg"></i>
@@ -191,7 +193,7 @@
             </div>
 
             <!-- Modal Form Body -->
-            <form id="eventForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4">
+            <form id="eventForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4 overflow-y-auto flex-1">
                 <input type="hidden" id="eventId">
 
                 <div class="grid grid-cols-2 gap-4">
@@ -207,6 +209,7 @@
                             <option value="交通">🚆 交通</option>
                             <option value="住宿">🏨 住宿</option>
                             <option value="購物">🛍️ 購物</option>
+                            <option value="追星">🌟 追星</option>
                             <option value="其他">📌 其他</option>
                         </select>
                     </div>
@@ -214,25 +217,73 @@
 
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">行程名稱/地點 *</label>
-                    <input type="text" id="eventTitle" placeholder="例如：駁二藝術特區" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 outline-none">
+                    <input type="text" id="eventTitle" placeholder="例如：聖水洞生日應援咖啡廳" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 outline-none">
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">預估費用 (NT$)</label>
-                    <input type="number" id="eventCost" placeholder="例如：150（無則留空）" min="0" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 outline-none">
+                    <input type="number" id="eventCost" placeholder="例如：350（無則留空）" min="0" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 outline-none">
+                </div>
+
+                <!-- 相關連結 (多項動態新增) -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-medium text-slate-600">相關連結 (如 Google 地圖、預約網址)</label>
+                        <button type="button" onclick="addLinkInputRow()" class="text-xs text-sky-600 hover:text-sky-700 font-medium">
+                            <i class="fa-solid fa-plus text-[10px]"></i> 新增連結
+                        </button>
+                    </div>
+                    <div id="modalLinksContainer" class="space-y-2">
+                        <!-- 動態生成連結欄位 -->
+                    </div>
+                </div>
+
+                <!-- 照片上傳區 (最多5張) -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-medium text-slate-600">照片附件</label>
+                        <span id="photoCounter" class="text-xs text-slate-400 font-medium">0 / 5 張</span>
+                    </div>
+                    
+                    <!-- 新增圖片控制項 -->
+                    <div class="flex items-center gap-2 mb-2">
+                        <label class="cursor-pointer px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-medium transition flex items-center space-x-1 border border-slate-200">
+                            <i class="fa-solid fa-upload"></i>
+                            <span>上傳圖片</span>
+                            <input type="file" id="modalPhotoFileInput" accept="image/*" multiple class="hidden" onchange="handlePhotoUpload(event)">
+                        </label>
+                        <span class="text-xs text-slate-400">或</span>
+                        <input type="url" id="modalPhotoUrlInput" placeholder="貼上圖片網址 URL" class="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-sky-500 outline-none">
+                        <button type="button" onclick="addPhotoFromUrl()" class="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-600 rounded-xl text-xs font-medium border border-sky-200 transition">新增</button>
+                    </div>
+
+                    <!-- 圖片預覽縮圖容器 -->
+                    <div id="modalPhotosPreview" class="flex flex-wrap gap-2 pt-1">
+                        <!-- 圖片預覽預留位置 -->
+                    </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">詳細備註 / 連結</label>
-                    <textarea id="eventNotes" rows="3" placeholder="例如：搭乘輕軌至 C12 站；記得攜帶門票優惠券" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 outline-none"></textarea>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">詳細備註 / 說明</label>
+                    <textarea id="eventNotes" rows="3" placeholder="例如：應援發放時間為 12:00~16:00，展示區可免費拍照" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 outline-none"></textarea>
                 </div>
 
                 <!-- Modal Actions -->
-                <div class="flex justify-end space-x-3 pt-2">
+                <div class="flex justify-end space-x-3 pt-2 shrink-0">
                     <button type="button" onclick="closeEventModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-medium transition">取消</button>
                     <button type="submit" class="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-sm font-medium shadow-sm transition">儲存行程</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- 圖片 Lightbox 放大預覽 Modal -->
+    <div id="lightboxModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4" onclick="closeLightbox()">
+        <div class="relative max-w-4xl max-h-[90vh] overflow-hidden" onclick="event.stopPropagation()">
+            <button onclick="closeLightbox()" class="absolute top-2 right-2 text-white/80 hover:text-white bg-black/40 hover:bg-black/60 rounded-full w-8 h-8 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <img id="lightboxImg" src="" alt="放大照片" class="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl mx-auto">
         </div>
     </div>
 
@@ -242,68 +293,50 @@
         const DEFAULT_DATA = [
             {
                 id: "day_1",
-                title: "Day 1 高雄港灣之旅",
+                title: "Day 1 首爾追星與美食踩點",
                 date: "2026-11-20",
                 events: [
                     {
                         id: "evt_1",
                         time: "10:00",
-                        title: "搭乘高鐵抵達左營站",
+                        title: "搭乘仁川機場快線 AREX 至弘大",
                         category: "交通",
-                        cost: 1490,
-                        notes: "轉乘高雄捷運紅線至美麗島站",
+                        cost: 250,
+                        notes: "購買 T-money 卡並加值",
+                        links: [
+                            { label: "AREX 官網預約", url: "https://www.arex.or.kr/" }
+                        ],
+                        photos: [],
                         completed: true
                     },
                     {
                         id: "evt_2",
                         time: "12:30",
-                        title: "鴨肉珍（鹽埕區老店）",
-                        category: "美食",
-                        cost: 180,
-                        notes: "必點鴨肉飯與下水湯，內用先找座位",
+                        title: "聖水洞偶像應援咖啡廳",
+                        category: "追星",
+                        cost: 350,
+                        notes: "消費一杯飲品贈送限定相卡與應援海報！",
+                        links: [
+                            { label: "NAVER 地圖位置", url: "https://map.naver.com/" }
+                        ],
+                        photos: [
+                            "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&auto=format&fit=crop&q=80"
+                        ],
                         completed: false
                     },
                     {
                         id: "evt_3",
-                        time: "14:30",
-                        title: "駁二藝術特區 & 棧貳庫",
-                        category: "景點",
-                        cost: 0,
-                        notes: "搭乘輕軌可欣賞港灣景色，逛手創市集",
-                        completed: false
-                    },
-                    {
-                        id: "evt_4",
-                        time: "18:30",
-                        title: "入住城市商旅真愛館",
-                        category: "住宿",
-                        cost: 2400,
-                        notes: "辦理入住，高樓層視野佳",
-                        completed: false
-                    }
-                ]
-            },
-            {
-                id: "day_2",
-                title: "Day 2 旗津海邊散策",
-                date: "2026-11-21",
-                events: [
-                    {
-                        id: "evt_5",
-                        time: "09:30",
-                        title: "鼓山輪渡站搭渡輪至旗津",
-                        category: "交通",
-                        cost: 30,
-                        notes: "刷悠遊卡/一卡通皆可，船程約 5 分鐘",
-                        completed: false
-                    },
-                    {
-                        id: "evt_6",
-                        time: "10:30",
-                        title: "旗后燈塔 & 旗津彩虹教堂",
-                        category: "景點",
-                        cost: 0,
-                        notes: "拍照打卡聖地，帶防曬用品",
+                        time: "18:00",
+                        title: "首爾奧林匹克公園（演唱會）",
+                        category: "追星",
+                        cost: 3800,
+                        notes: "17:00 開始入場，攜帶應援棒與行動電源",
+                        links: [
+                            { label: "演唱會場地資訊", url: "https://www.kspondom.or.kr/" }
+                        ],
+                        photos: [
+                            "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80"
+                        ],
                         completed: false
                     }
                 ]
@@ -313,6 +346,7 @@
         // 應用程式狀態 State
         let tripData = [];
         let currentDayIndex = 0;
+        let tempPhotos = []; // Modal 編輯中的臨時照片陣列 (base64 或 url)
 
         // 類別 Badge 顏色標籤映射
         const CATEGORY_COLORS = {
@@ -321,6 +355,7 @@
             '交通': 'bg-indigo-100 text-indigo-700 border-indigo-200',
             '住宿': 'bg-purple-100 text-purple-700 border-purple-200',
             '購物': 'bg-pink-100 text-pink-700 border-pink-200',
+            '追星': 'bg-fandom-100 text-fandom-700 border-fandom-200 shadow-sm',
             '其他': 'bg-slate-100 text-slate-700 border-slate-200'
         };
 
@@ -348,8 +383,12 @@
 
         // 儲存資料至 localStorage
         function saveData() {
-            localStorage.setItem('travel_planner_data', JSON.stringify(tripData));
-            updateStats();
+            try {
+                localStorage.setItem('travel_planner_data', JSON.stringify(tripData));
+                updateStats();
+            } catch (e) {
+                alert('儲存失敗！可能圖片檔案過大超過瀏覽器儲存限制，請嘗試刪除部分高畫質圖片。');
+            }
         }
 
         // 核心渲染 Render
@@ -436,6 +475,33 @@
                 const card = document.createElement('div');
                 card.className = `relative pl-10 transition-all duration-200 ${evt.completed ? 'opacity-55' : 'opacity-100'}`;
                 
+                // 渲染相關連結 HTML
+                let linksHtml = '';
+                if (evt.links && evt.links.length > 0) {
+                    const linkItems = evt.links.map(link => `
+                        <a href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer" 
+                           class="inline-flex items-center space-x-1 px-2.5 py-1 bg-white hover:bg-sky-50 text-sky-600 border border-slate-200 rounded-lg text-xs transition shadow-sm">
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                            <span class="font-medium">${escapeHtml(link.label || '相關連結')}</span>
+                        </a>
+                    `).join('');
+                    linksHtml = `<div class="flex flex-wrap gap-1.5 mt-2.5">${linkItems}</div>`;
+                }
+
+                // 渲染照片附件 HTML
+                let photosHtml = '';
+                if (evt.photos && evt.photos.length > 0) {
+                    const photoImgs = evt.photos.map(src => `
+                        <div class="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border border-slate-200 shadow-sm cursor-pointer group shrink-0" onclick="openLightbox('${src}')">
+                            <img src="${src}" alt="行程照片" class="w-full h-full object-cover group-hover:scale-105 transition duration-200" onerror="this.src='https://placehold.co/200x200/e2e8f0/94a3b8?text=Image+Error'">
+                            <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white">
+                                <i class="fa-solid fa-magnifying-glass-plus text-xs"></i>
+                            </div>
+                        </div>
+                    `).join('');
+                    photosHtml = `<div class="flex items-center gap-2 mt-3 overflow-x-auto pb-1 no-scrollbar">${photoImgs}</div>`;
+                }
+
                 card.innerHTML = `
                     <!-- 時間軸節點 Icon -->
                     <button onclick="toggleEventComplete('${evt.id}')" title="${evt.completed ? '標記為未完成' : '標記為已完成'}" class="absolute left-2 top-3 w-6 h-6 rounded-full flex items-center justify-center border-2 z-10 transition ${
@@ -451,7 +517,9 @@
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                             <div class="flex items-center space-x-2">
                                 <span class="font-mono font-bold text-sky-700 text-sm bg-sky-100/80 px-2.5 py-0.5 rounded-lg">${evt.time}</span>
-                                <span class="text-xs px-2 py-0.5 rounded-md border font-medium ${categoryClass}">${evt.category}</span>
+                                <span class="text-xs px-2 py-0.5 rounded-md border font-medium ${categoryClass}">
+                                    ${evt.category === '追星' ? '🌟 ' : ''}${evt.category}
+                                </span>
                             </div>
                             
                             <!-- 操作按鈕 -->
@@ -471,9 +539,15 @@
                             ${evt.cost ? `<span class="text-sm font-semibold text-emerald-600 whitespace-nowrap">NT$ ${evt.cost.toLocaleString()}</span>` : ''}
                         </div>
 
+                        <!-- 相關連結 -->
+                        ${linksHtml}
+
+                        <!-- 照片展覽區 -->
+                        ${photosHtml}
+
                         <!-- 備註說明 -->
                         ${evt.notes ? `
-                            <p class="text-xs text-slate-500 mt-2 bg-white/60 p-2.5 rounded-xl border border-slate-100 whitespace-pre-line">${escapeHtml(evt.notes)}</p>
+                            <p class="text-xs text-slate-500 mt-2.5 bg-white/60 p-2.5 rounded-xl border border-slate-100 whitespace-pre-line">${escapeHtml(evt.notes)}</p>
                         ` : ''}
                     </div>
                 `;
@@ -543,6 +617,90 @@
             document.getElementById('eventModal').classList.add('hidden');
             document.getElementById('eventForm').reset();
             document.getElementById('eventId').value = '';
+            document.getElementById('modalLinksContainer').innerHTML = '';
+            tempPhotos = [];
+            renderModalPhotosPreview();
+        }
+
+        // 動態新增連結輸入列 (Modal 內)
+        function addLinkInputRow(label = '', url = '') {
+            const container = document.getElementById('modalLinksContainer');
+            const row = document.createElement('div');
+            row.className = 'flex items-center gap-2 link-row';
+            row.innerHTML = `
+                <input type="text" placeholder="標籤 (如：Google 地圖)" value="${escapeHtml(label)}" class="w-1/3 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-sky-500 outline-none link-label">
+                <input type="url" placeholder="網址 (https://...)" value="${escapeHtml(url)}" class="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-sky-500 outline-none link-url">
+                <button type="button" onclick="this.parentElement.remove()" class="p-1 text-slate-400 hover:text-red-500 transition">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            `;
+            container.appendChild(row);
+        }
+
+        // 處理照片上傳 (圖片轉換 Base64)
+        function handlePhotoUpload(e) {
+            const files = Array.from(e.target.files);
+            if (!files.length) return;
+
+            if (tempPhotos.length + files.length > 5) {
+                alert('一個行程項目最多只能附帶 5 張照片！');
+                return;
+            }
+
+            files.forEach(file => {
+                if (tempPhotos.length >= 5) return;
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    tempPhotos.push(evt.target.result);
+                    renderModalPhotosPreview();
+                };
+                reader.readAsDataURL(file);
+            });
+
+            e.target.value = ''; // 清空選擇
+        }
+
+        // 貼上 URL 新增圖片
+        function addPhotoFromUrl() {
+            const input = document.getElementById('modalPhotoUrlInput');
+            const url = input.value.trim();
+            if (!url) return;
+
+            if (tempPhotos.length >= 5) {
+                alert('一個行程項目最多只能附帶 5 張照片！');
+                return;
+            }
+
+            tempPhotos.push(url);
+            input.value = '';
+            renderModalPhotosPreview();
+        }
+
+        // 移除編輯中的預覽圖片
+        function removeTempPhoto(index) {
+            tempPhotos.splice(index, 1);
+            renderModalPhotosPreview();
+        }
+
+        // 渲染 Modal 內圖片縮圖與計數
+        function renderModalPhotosPreview() {
+            const container = document.getElementById('modalPhotosPreview');
+            const counter = document.getElementById('photoCounter');
+            container.innerHTML = '';
+
+            counter.textContent = `${tempPhotos.length} / 5 張`;
+
+            tempPhotos.forEach((src, idx) => {
+                const thumb = document.createElement('div');
+                thumb.className = 'relative w-16 h-16 rounded-xl overflow-hidden border border-slate-200 group';
+                thumb.innerHTML = `
+                    <img src="${src}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100x100/e2e8f0/94a3b8?text=Error'">
+                    <button type="button" onclick="removeTempPhoto(${idx})" class="absolute top-1 right-1 bg-black/60 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+                container.appendChild(thumb);
+            });
         }
 
         // 編輯行程
@@ -556,6 +714,18 @@
             document.getElementById('eventTitle').value = evt.title;
             document.getElementById('eventCost').value = evt.cost || '';
             document.getElementById('eventNotes').value = evt.notes || '';
+
+            // 填充連結
+            document.getElementById('modalLinksContainer').innerHTML = '';
+            if (evt.links && evt.links.length > 0) {
+                evt.links.forEach(l => addLinkInputRow(l.label, l.url));
+            } else {
+                addLinkInputRow(); // 預設一組空的
+            }
+
+            // 填充照片
+            tempPhotos = [...(evt.photos || [])];
+            renderModalPhotosPreview();
 
             openEventModal(true);
         }
@@ -582,6 +752,17 @@
             const cost = costVal !== '' ? parseFloat(costVal) : 0;
             const notes = document.getElementById('eventNotes').value.trim();
 
+            // 收集相關連結
+            const links = [];
+            const linkRows = document.querySelectorAll('.link-row');
+            linkRows.forEach(row => {
+                const label = row.querySelector('.link-label').value.trim();
+                const url = row.querySelector('.link-url').value.trim();
+                if (url) {
+                    links.push({ label: label || '相關連結', url });
+                }
+            });
+
             if (eventId) {
                 // 更新編輯的行程
                 const evt = tripData[currentDayIndex].events.find(e => e.id === eventId);
@@ -591,6 +772,8 @@
                     evt.title = title;
                     evt.cost = cost;
                     evt.notes = notes;
+                    evt.links = links;
+                    evt.photos = [...tempPhotos];
                 }
             } else {
                 // 新增行程
@@ -601,6 +784,8 @@
                     title,
                     cost,
                     notes,
+                    links,
+                    photos: [...tempPhotos],
                     completed: false
                 });
             }
@@ -608,6 +793,18 @@
             saveData();
             closeEventModal();
             render();
+        }
+
+        // 開啟圖片 Lightbox
+        function openLightbox(src) {
+            document.getElementById('lightboxImg').src = src;
+            document.getElementById('lightboxModal').classList.remove('hidden');
+        }
+
+        // 關閉 Lightbox
+        function closeLightbox() {
+            document.getElementById('lightboxModal').classList.add('hidden');
+            document.getElementById('lightboxImg').src = '';
         }
 
         // 更新頂部統計數據看板
