@@ -1,9 +1,9 @@
-
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的旅遊行程規劃器 | Travel Planner</title>
+    <title>旅遊行程規劃器 | Travel Planner</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome 圖標庫 -->
@@ -66,19 +66,21 @@
     <!-- 頂部導覽列 Header -->
     <header class="bg-gradient-to-r from-sky-600 via-teal-600 to-emerald-600 text-white shadow-md">
         <div class="max-w-6xl mx-auto px-4 py-4 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="flex items-center space-x-3">
-                <div class="p-2.5 bg-white/20 backdrop-blur-md rounded-2xl shadow-inner">
-                    <i class="fa-solid fa-plane-departure text-2xl text-white"></i>
-                </div>
-                <div>
-                    <h1 class="text-xl sm:text-2xl font-bold tracking-tight">旅遊行程規劃器</h1>
-                    <p class="text-xs text-sky-100 opacity-90">自由行、追星踩點、美食行程全記錄</p>
+            <div class="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-start">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-white/20 backdrop-blur-md rounded-2xl shadow-inner">
+                        <i class="fa-solid fa-plane-departure text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl sm:text-2xl font-bold tracking-tight">旅遊行程規劃器</h1>
+                        <p class="text-xs text-sky-100 opacity-90">自由行、追星踩點、行程隨手記</p>
+                    </div>
                 </div>
             </div>
             
             <!-- 工具列按鈕 -->
-            <div class="flex items-center space-x-2 text-sm">
-                <button onclick="exportData()" title="匯出行程 JSON 檔" class="px-3 py-2 bg-white/10 hover:bg-white/20 active:bg-white/30 backdrop-blur-md rounded-xl transition duration-150 flex items-center space-x-1.5 border border-white/20">
+            <div class="flex items-center space-x-2 text-sm w-full sm:w-auto justify-end">
+                <button onclick="exportData()" title="匯出所有行程 JSON 檔" class="px-3 py-2 bg-white/10 hover:bg-white/20 active:bg-white/30 backdrop-blur-md rounded-xl transition duration-150 flex items-center space-x-1.5 border border-white/20">
                     <i class="fa-solid fa-file-export"></i>
                     <span class="hidden sm:inline">匯出行程</span>
                 </button>
@@ -88,9 +90,9 @@
                 </button>
                 <input type="file" id="importFileInput" accept=".json" class="hidden" onchange="importData(event)">
                 
-                <button onclick="resetAllData()" title="清空所有資料" class="px-3 py-2 bg-red-500/30 hover:bg-red-500/50 active:bg-red-500/70 backdrop-blur-md rounded-xl transition duration-150 flex items-center space-x-1.5 border border-white/20 text-red-100">
-                    <i class="fa-solid fa-trash-can"></i>
-                    <span class="hidden sm:inline">重置全部</span>
+                <button onclick="resetAllData()" title="重置為初始示範資料" class="px-3 py-2 bg-red-500/30 hover:bg-red-500/50 active:bg-red-500/70 backdrop-blur-md rounded-xl transition duration-150 flex items-center space-x-1.5 border border-white/20 text-red-100">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span class="hidden sm:inline">重置資料</span>
                 </button>
             </div>
         </div>
@@ -99,7 +101,36 @@
     <!-- 主要內容區 -->
     <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 sm:px-6">
         
-        <!-- 頂部統計數據 DashBoard -->
+        <!-- 專案/旅遊大標題選擇器 (Project Bar) -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex-1 flex items-center space-x-3">
+                <div class="p-2 bg-sky-50 text-sky-600 rounded-xl">
+                    <i class="fa-solid fa-suitcase text-xl"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center space-x-2">
+                        <label class="text-xs text-slate-400 font-medium">當前旅行計畫 (專案)</label>
+                        <button onclick="renameCurrentProject()" class="text-xs text-sky-600 hover:underline"><i class="fa-regular fa-pen-to-square"></i> 改名</button>
+                    </div>
+                    <select id="projectSelect" onchange="switchProject(this.value)" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-base font-bold rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-sky-500 outline-none truncate">
+                        <!-- 動態生成專案清單 -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- 專案管理操作按鈕 -->
+            <div class="flex items-center space-x-2 shrink-0 justify-end">
+                <button onclick="addNewProject()" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-medium transition flex items-center space-x-1.5 shadow-sm">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>新建行程專案</span>
+                </button>
+                <button onclick="deleteCurrentProject()" title="刪除此專案" class="px-3 py-2 bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded-xl text-xs font-medium transition">
+                    <i class="fa-regular fa-trash-can"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 統計數據 DashBoard -->
         <div class="grid grid-cols-3 gap-3 sm:gap-6 mb-6">
             <div class="bg-white p-3 sm:p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-3 sm:space-x-4">
                 <div class="p-2.5 sm:p-3.5 bg-sky-50 text-sky-600 rounded-xl">
@@ -145,7 +176,7 @@
                 <!-- 天數名稱與日期編輯 -->
                 <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs text-slate-400 font-medium mb-1">天數名稱</label>
+                        <label class="block text-xs text-slate-400 font-medium mb-1">天數標題</label>
                         <input type="text" id="dayTitleInput" onchange="updateDayMeta()" placeholder="如：Day 1 首爾追星與咖啡廳" 
                                class="w-full px-3 py-1.5 text-base font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 focus:bg-white outline-none transition">
                     </div>
@@ -196,10 +227,15 @@
             <form id="eventForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4 overflow-y-auto flex-1">
                 <input type="hidden" id="eventId">
 
-                <div class="grid grid-cols-2 gap-4">
+                <!-- 時間區間與類別 -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">時間 *</label>
-                        <input type="time" id="eventTime" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 outline-none">
+                        <label class="block text-xs font-medium text-slate-600 mb-1">開始時間 *</label>
+                        <input type="time" id="eventStartTime" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">結束時間</label>
+                        <input type="time" id="eventEndTime" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1">類別 *</label>
@@ -289,64 +325,118 @@
 
     <!-- JavaScript 邏輯處理 -->
     <script>
-        // 預設範例資料（初次使用者可看到）
-        const DEFAULT_DATA = [
+        // 預設範例資料（多專案結構）
+        const DEFAULT_PROJECTS = [
             {
-                id: "day_1",
-                title: "Day 1 首爾追星與美食踩點",
-                date: "2026-11-20",
-                events: [
+                id: "proj_1",
+                name: "2026 首爾追星與美食之旅",
+                days: [
                     {
-                        id: "evt_1",
-                        time: "10:00",
-                        title: "搭乘仁川機場快線 AREX 至弘大",
-                        category: "交通",
-                        cost: 250,
-                        notes: "購買 T-money 卡並加值",
-                        links: [
-                            { label: "AREX 官網預約", url: "https://www.arex.or.kr/" }
-                        ],
-                        photos: [],
-                        completed: true
+                        id: "day_1",
+                        title: "Day 1 抵達與首爾踩點",
+                        date: "2026-11-20",
+                        events: [
+                            {
+                                id: "evt_1",
+                                startTime: "10:00",
+                                endTime: "11:30",
+                                title: "搭乘仁川機場快線 AREX 至弘大",
+                                category: "交通",
+                                cost: 250,
+                                notes: "購買 T-money 卡並加值",
+                                links: [
+                                    { label: "AREX 官網預約", url: "https://www.arex.or.kr/" }
+                                ],
+                                photos: [],
+                                completed: true
+                            },
+                            {
+                                id: "evt_2",
+                                startTime: "12:30",
+                                endTime: "14:30",
+                                title: "聖水洞偶像應援咖啡廳",
+                                category: "追星",
+                                cost: 350,
+                                notes: "消費一杯飲品贈送限定相卡與應援海報！",
+                                links: [
+                                    { label: "NAVER 地圖位置", url: "https://map.naver.com/" }
+                                ],
+                                photos: [
+                                    "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&auto=format&fit=crop&q=80"
+                                ],
+                                completed: false
+                            },
+                            {
+                                id: "evt_3",
+                                startTime: "18:00",
+                                endTime: "21:30",
+                                title: "首爾奧林匹克公園（演唱會）",
+                                category: "追星",
+                                cost: 3800,
+                                notes: "17:00 開始入場，攜帶應援棒與行動電源",
+                                links: [
+                                    { label: "演唱會場地資訊", url: "https://www.kspondom.or.kr/" }
+                                ],
+                                photos: [
+                                    "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80"
+                                ],
+                                completed: false
+                            }
+                        ]
                     },
                     {
-                        id: "evt_2",
-                        time: "12:30",
-                        title: "聖水洞偶像應援咖啡廳",
-                        category: "追星",
-                        cost: 350,
-                        notes: "消費一杯飲品贈送限定相卡與應援海報！",
-                        links: [
-                            { label: "NAVER 地圖位置", url: "https://map.naver.com/" }
-                        ],
-                        photos: [
-                            "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&auto=format&fit=crop&q=80"
-                        ],
-                        completed: false
-                    },
+                        id: "day_2",
+                        title: "Day 2 景福宮與漢江公園",
+                        date: "2026-11-21",
+                        events: [
+                            {
+                                id: "evt_4",
+                                startTime: "10:30",
+                                endTime: "12:00",
+                                title: "景福宮韓服體驗拍照",
+                                category: "景點",
+                                cost: 500,
+                                notes: "穿韓服可免費入場景福宮",
+                                links: [],
+                                photos: [],
+                                completed: false
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "proj_2",
+                name: "台南美食慢活小旅行",
+                days: [
                     {
-                        id: "evt_3",
-                        time: "18:00",
-                        title: "首爾奧林匹克公園（演唱會）",
-                        category: "追星",
-                        cost: 3800,
-                        notes: "17:00 開始入場，攜帶應援棒與行動電源",
-                        links: [
-                            { label: "演唱會場地資訊", url: "https://www.kspondom.or.kr/" }
-                        ],
-                        photos: [
-                            "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80"
-                        ],
-                        completed: false
+                        id: "day_1",
+                        title: "Day 1 國華街美食踩點",
+                        date: "2026-12-05",
+                        events: [
+                            {
+                                id: "evt_5",
+                                startTime: "11:00",
+                                endTime: "13:00",
+                                title: "牛肉湯與小卷米粉吃到飽",
+                                category: "美食",
+                                cost: 400,
+                                notes: "提前排隊避免人潮",
+                                links: [],
+                                photos: [],
+                                completed: false
+                            }
+                        ]
                     }
                 ]
             }
         ];
 
         // 應用程式狀態 State
-        let tripData = [];
+        let projects = [];
+        let currentProjectId = "";
         let currentDayIndex = 0;
-        let tempPhotos = []; // Modal 編輯中的臨時照片陣列 (base64 或 url)
+        let tempPhotos = []; // Modal 編輯中的臨時照片陣列
 
         // 類別 Badge 顏色標籤映射
         const CATEGORY_COLORS = {
@@ -368,38 +458,55 @@
 
         // 載入資料 (從 localStorage)
         function loadData() {
-            const saved = localStorage.getItem('travel_planner_data');
+            const saved = localStorage.getItem('travel_planner_projects');
             if (saved) {
                 try {
-                    tripData = JSON.parse(saved);
+                    projects = JSON.parse(saved);
                 } catch (e) {
                     console.error('資料解析失敗，載入預設資料', e);
-                    tripData = [...DEFAULT_DATA];
+                    projects = JSON.parse(JSON.stringify(DEFAULT_PROJECTS));
                 }
             } else {
-                tripData = [...DEFAULT_DATA];
+                projects = JSON.parse(JSON.stringify(DEFAULT_PROJECTS));
+            }
+
+            if (projects.length > 0) {
+                currentProjectId = projects[0].id;
             }
         }
 
         // 儲存資料至 localStorage
         function saveData() {
             try {
-                localStorage.setItem('travel_planner_data', JSON.stringify(tripData));
+                localStorage.setItem('travel_planner_projects', JSON.stringify(projects));
                 updateStats();
             } catch (e) {
                 alert('儲存失敗！可能圖片檔案過大超過瀏覽器儲存限制，請嘗試刪除部分高畫質圖片。');
             }
         }
 
+        // 取得當前專案
+        function getCurrentProject() {
+            return projects.find(p => p.id === currentProjectId) || projects[0];
+        }
+
         // 核心渲染 Render
         function render() {
-            if (tripData.length === 0) {
+            if (projects.length === 0) {
+                addNewProject();
+                return;
+            }
+
+            renderProjectSelect();
+
+            const curProj = getCurrentProject();
+            if (!curProj.days || curProj.days.length === 0) {
                 addNewDay();
                 return;
             }
 
-            if (currentDayIndex >= tripData.length) {
-                currentDayIndex = tripData.length - 1;
+            if (currentDayIndex >= curProj.days.length) {
+                currentDayIndex = curProj.days.length - 1;
             }
 
             renderTabs();
@@ -407,12 +514,85 @@
             updateStats();
         }
 
+        // 渲染專案下拉清單
+        function renderProjectSelect() {
+            const select = document.getElementById('projectSelect');
+            select.innerHTML = '';
+            projects.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = p.name;
+                if (p.id === currentProjectId) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        // 切換專案
+        function switchProject(projId) {
+            currentProjectId = projId;
+            currentDayIndex = 0;
+            render();
+        }
+
+        // 新建專案
+        function addNewProject() {
+            const name = prompt('請輸入新建專案/旅行大標題：', '新旅遊行程規劃');
+            if (!name || !name.trim()) return;
+
+            const newProj = {
+                id: 'proj_' + Date.now(),
+                name: name.trim(),
+                days: [
+                    {
+                        id: 'day_' + Date.now(),
+                        title: 'Day 1',
+                        date: '',
+                        events: []
+                    }
+                ]
+            };
+            projects.push(newProj);
+            currentProjectId = newProj.id;
+            currentDayIndex = 0;
+            saveData();
+            render();
+        }
+
+        // 改名當前專案
+        function renameCurrentProject() {
+            const curProj = getCurrentProject();
+            const newName = prompt('請修改專案名稱：', curProj.name);
+            if (newName && newName.trim()) {
+                curProj.name = newName.trim();
+                saveData();
+                renderProjectSelect();
+            }
+        }
+
+        // 刪除當前專案
+        function deleteCurrentProject() {
+            if (projects.length <= 1) {
+                alert('至少需要保留一個旅遊專案！');
+                return;
+            }
+            const curProj = getCurrentProject();
+            if (confirm(`確定要刪除專案「${curProj.name}」及其所有天數與行程嗎？`)) {
+                projects = projects.filter(p => p.id !== currentProjectId);
+                currentProjectId = projects[0].id;
+                currentDayIndex = 0;
+                saveData();
+                render();
+            }
+        }
+
         // 渲染 Day 標籤列
         function renderTabs() {
             const container = document.getElementById('dayTabsContainer');
             container.innerHTML = '';
 
-            tripData.forEach((day, index) => {
+            const curProj = getCurrentProject();
+
+            curProj.days.forEach((day, index) => {
                 const isActive = index === currentDayIndex;
                 const tabBtn = document.createElement('button');
                 tabBtn.className = `px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all duration-150 flex items-center space-x-2 ${
@@ -423,7 +603,7 @@
                 
                 tabBtn.innerHTML = `
                     <span>${day.title || 'Day ' + (index + 1)}</span>
-                    <span class="text-xs px-1.5 py-0.5 rounded-full ${isActive ? 'bg-sky-700 text-sky-100' : 'bg-slate-200 text-slate-500'}">${day.events.length}</span>
+                    <span class="text-xs px-1.5 py-0.5 rounded-full ${isActive ? 'bg-sky-700 text-sky-100' : 'bg-slate-200 text-slate-500'}">${day.events ? day.events.length : 0}</span>
                 `;
                 tabBtn.onclick = () => {
                     currentDayIndex = index;
@@ -442,14 +622,19 @@
 
         // 渲染當日詳細內容
         function renderCurrentDayDetails() {
-            const currentDay = tripData[currentDayIndex];
+            const curProj = getCurrentProject();
+            const currentDay = curProj.days[currentDayIndex];
             
             // 填入 Meta Input
             document.getElementById('dayTitleInput').value = currentDay.title || '';
             document.getElementById('dayDateInput').value = currentDay.date || '';
 
-            // 按時間排序 events
-            currentDay.events.sort((a, b) => a.time.localeCompare(b.time));
+            // 按時間排序 events (使用 startTime)
+            if (currentDay.events) {
+                currentDay.events.sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
+            } else {
+                currentDay.events = [];
+            }
 
             const container = document.getElementById('eventsTimeline');
             container.innerHTML = '';
@@ -475,6 +660,12 @@
                 const card = document.createElement('div');
                 card.className = `relative pl-10 transition-all duration-200 ${evt.completed ? 'opacity-55' : 'opacity-100'}`;
                 
+                // 時間格式顯示區間
+                let timeDisplay = evt.startTime || '--:--';
+                if (evt.endTime) {
+                    timeDisplay += ` - ${evt.endTime}`;
+                }
+
                 // 渲染相關連結 HTML
                 let linksHtml = '';
                 if (evt.links && evt.links.length > 0) {
@@ -516,7 +707,10 @@
                     <div class="bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 rounded-2xl p-4 transition shadow-sm hover:shadow">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                             <div class="flex items-center space-x-2">
-                                <span class="font-mono font-bold text-sky-700 text-sm bg-sky-100/80 px-2.5 py-0.5 rounded-lg">${evt.time}</span>
+                                <span class="font-mono font-bold text-sky-700 text-xs sm:text-sm bg-sky-100/80 px-2.5 py-0.5 rounded-lg flex items-center space-x-1">
+                                    <i class="fa-regular fa-clock text-[11px]"></i>
+                                    <span>${timeDisplay}</span>
+                                </span>
                                 <span class="text-xs px-2 py-0.5 rounded-md border font-medium ${categoryClass}">
                                     ${evt.category === '追星' ? '🌟 ' : ''}${evt.category}
                                 </span>
@@ -561,8 +755,9 @@
             const title = document.getElementById('dayTitleInput').value.trim();
             const date = document.getElementById('dayDateInput').value;
 
-            tripData[currentDayIndex].title = title || `Day ${currentDayIndex + 1}`;
-            tripData[currentDayIndex].date = date;
+            const curProj = getCurrentProject();
+            curProj.days[currentDayIndex].title = title || `Day ${currentDayIndex + 1}`;
+            curProj.days[currentDayIndex].date = date;
 
             saveData();
             renderTabs();
@@ -570,26 +765,28 @@
 
         // 新增一天
         function addNewDay() {
-            const newDayNum = tripData.length + 1;
-            tripData.push({
+            const curProj = getCurrentProject();
+            const newDayNum = curProj.days.length + 1;
+            curProj.days.push({
                 id: 'day_' + Date.now(),
                 title: `Day ${newDayNum}`,
                 date: '',
                 events: []
             });
-            currentDayIndex = tripData.length - 1;
+            currentDayIndex = curProj.days.length - 1;
             saveData();
             render();
         }
 
         // 刪除當前天數
         function deleteCurrentDay() {
-            if (tripData.length <= 1) {
-                alert('旅行至少需要保留一天喔！');
+            const curProj = getCurrentProject();
+            if (curProj.days.length <= 1) {
+                alert('專案內至少需要保留一天喔！');
                 return;
             }
-            if (confirm(`確定要刪除「${tripData[currentDayIndex].title}」及其所有行程嗎？`)) {
-                tripData.splice(currentDayIndex, 1);
+            if (confirm(`確定要刪除「${curProj.days[currentDayIndex].title}」及其所有行程嗎？`)) {
+                curProj.days.splice(currentDayIndex, 1);
                 currentDayIndex = Math.max(0, currentDayIndex - 1);
                 saveData();
                 render();
@@ -598,7 +795,8 @@
 
         // 切換行程完成狀態 Checkbox
         function toggleEventComplete(eventId) {
-            const evt = tripData[currentDayIndex].events.find(e => e.id === eventId);
+            const curProj = getCurrentProject();
+            const evt = curProj.days[currentDayIndex].events.find(e => e.id === eventId);
             if (evt) {
                 evt.completed = !evt.completed;
                 saveData();
@@ -657,7 +855,7 @@
                 reader.readAsDataURL(file);
             });
 
-            e.target.value = ''; // 清空選擇
+            e.target.value = '';
         }
 
         // 貼上 URL 新增圖片
@@ -705,11 +903,13 @@
 
         // 編輯行程
         function editEvent(eventId) {
-            const evt = tripData[currentDayIndex].events.find(e => e.id === eventId);
+            const curProj = getCurrentProject();
+            const evt = curProj.days[currentDayIndex].events.find(e => e.id === eventId);
             if (!evt) return;
 
             document.getElementById('eventId').value = evt.id;
-            document.getElementById('eventTime').value = evt.time;
+            document.getElementById('eventStartTime').value = evt.startTime || evt.time || '';
+            document.getElementById('eventEndTime').value = evt.endTime || '';
             document.getElementById('eventCategory').value = evt.category;
             document.getElementById('eventTitle').value = evt.title;
             document.getElementById('eventCost').value = evt.cost || '';
@@ -720,7 +920,7 @@
             if (evt.links && evt.links.length > 0) {
                 evt.links.forEach(l => addLinkInputRow(l.label, l.url));
             } else {
-                addLinkInputRow(); // 預設一組空的
+                addLinkInputRow();
             }
 
             // 填充照片
@@ -733,7 +933,8 @@
         // 刪除單一行程
         function deleteEvent(eventId) {
             if (confirm('確定要刪除這個行程嗎？')) {
-                tripData[currentDayIndex].events = tripData[currentDayIndex].events.filter(e => e.id !== eventId);
+                const curProj = getCurrentProject();
+                curProj.days[currentDayIndex].events = curProj.days[currentDayIndex].events.filter(e => e.id !== eventId);
                 saveData();
                 renderCurrentDayDetails();
                 renderTabs();
@@ -745,7 +946,8 @@
             e.preventDefault();
 
             const eventId = document.getElementById('eventId').value;
-            const time = document.getElementById('eventTime').value;
+            const startTime = document.getElementById('eventStartTime').value;
+            const endTime = document.getElementById('eventEndTime').value;
             const category = document.getElementById('eventCategory').value;
             const title = document.getElementById('eventTitle').value.trim();
             const costVal = document.getElementById('eventCost').value;
@@ -763,11 +965,14 @@
                 }
             });
 
+            const curProj = getCurrentProject();
+
             if (eventId) {
                 // 更新編輯的行程
-                const evt = tripData[currentDayIndex].events.find(e => e.id === eventId);
+                const evt = curProj.days[currentDayIndex].events.find(e => e.id === eventId);
                 if (evt) {
-                    evt.time = time;
+                    evt.startTime = startTime;
+                    evt.endTime = endTime;
                     evt.category = category;
                     evt.title = title;
                     evt.cost = cost;
@@ -777,9 +982,10 @@
                 }
             } else {
                 // 新增行程
-                tripData[currentDayIndex].events.push({
+                curProj.days[currentDayIndex].events.push({
                     id: 'evt_' + Date.now(),
-                    time,
+                    startTime,
+                    endTime,
                     category,
                     title,
                     cost,
@@ -809,16 +1015,21 @@
 
         // 更新頂部統計數據看板
         function updateStats() {
-            const totalDays = tripData.length;
+            const curProj = getCurrentProject();
+            const totalDays = curProj.days ? curProj.days.length : 0;
             let totalEvents = 0;
             let totalCost = 0;
 
-            tripData.forEach(day => {
-                totalEvents += day.events.length;
-                day.events.forEach(evt => {
-                    if (evt.cost) totalCost += evt.cost;
+            if (curProj.days) {
+                curProj.days.forEach(day => {
+                    if (day.events) {
+                        totalEvents += day.events.length;
+                        day.events.forEach(evt => {
+                            if (evt.cost) totalCost += evt.cost;
+                        });
+                    }
                 });
-            });
+            }
 
             document.getElementById('statDays').textContent = `${totalDays} 天`;
             document.getElementById('statEvents').textContent = `${totalEvents} 個`;
@@ -827,10 +1038,10 @@
 
         // 匯出 JSON 檔
         function exportData() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tripData, null, 2));
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projects, null, 2));
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `my_travel_plan_${new Date().toISOString().slice(0, 10)}.json`);
+            downloadAnchor.setAttribute("download", `all_travel_projects_${new Date().toISOString().slice(0, 10)}.json`);
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
@@ -846,8 +1057,9 @@
                 try {
                     const importedData = JSON.parse(e.target.result);
                     if (Array.isArray(importedData)) {
-                        if (confirm('匯入新的行程將會覆蓋當前資料，確定要繼續嗎？')) {
-                            tripData = importedData;
+                        if (confirm('匯入新的行程將會覆蓋當前所有專案資料，確定要繼續嗎？')) {
+                            projects = importedData;
+                            currentProjectId = projects[0] ? projects[0].id : "";
                             currentDayIndex = 0;
                             saveData();
                             render();
@@ -861,14 +1073,15 @@
                 }
             };
             reader.readAsText(file);
-            event.target.value = ''; // Reset input
+            event.target.value = '';
         }
 
         // 清空重置所有資料
         function resetAllData() {
-            if (confirm('⚠️ 警告：確定要清空所有行程資料嗎？此動作無法復原。')) {
-                localStorage.removeItem('travel_planner_data');
-                tripData = [...DEFAULT_DATA];
+            if (confirm('⚠️ 警告：確定要重置所有行程專案為預設範例嗎？')) {
+                localStorage.removeItem('travel_planner_projects');
+                projects = JSON.parse(JSON.stringify(DEFAULT_PROJECTS));
+                currentProjectId = projects[0].id;
                 currentDayIndex = 0;
                 saveData();
                 render();
