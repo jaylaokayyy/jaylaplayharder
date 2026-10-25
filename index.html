@@ -85,7 +85,7 @@
         <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
                 <div class="p-2.5 bg-white/20 rounded-2xl backdrop-blur-sm">
-                    <i class="fa-solid fa-[#ffffff] fa-plane-departure text-2xl"></i>
+                    <i class="fa-solid fa-plane-departure text-2xl text-white"></i>
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold tracking-wide">旅遊行程規劃器</h1>
@@ -129,10 +129,7 @@
         <!-- 專案標題與概覽卡片 -->
         <div class="bg-white rounded-2xl p-6 mb-6 shadow-sm border border-pink-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-                <div class="flex items-center gap-2 mb-1">
-                    <span class="px-2.5 py-0.5 text-xs rounded-full bg-pink-100 text-pink-700 font-medium">當前計畫</span>
-                    <h2 id="currentProjectTitle" class="text-2xl font-bold text-slate-800">未命名行程</h2>
-                </div>
+                <h2 id="currentProjectTitle" class="text-2xl font-bold text-slate-800 mb-1">未命名行程</h2>
                 <p id="projectStats" class="text-sm text-slate-500">共 0 天 | 0 個行程項目</p>
             </div>
 
@@ -210,7 +207,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">預估費用 / 備註金額</label>
-                        <input type="text" id="itemCost" placeholder="例如：₩15,000 / NT$300" class="w-full px-3 py-2 border border-pink-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-400">
+                        <input type="text" id="itemCost" placeholder="例如：15000 或 NT$300" class="w-full px-3 py-2 border border-pink-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-400">
                     </div>
                 </div>
 
@@ -325,7 +322,7 @@
                 projects: [
                     {
                         id: defaultId,
-                        name: '首爾首爾追星與美食小旅行',
+                        name: '首爾追星與美食小旅行',
                         days: [
                             {
                                 dayNumber: 1,
@@ -470,6 +467,48 @@
             }
         }
 
+        // 計算並統計當天總花費
+        function calculateDayTotalCost(items) {
+            if (!items || items.length === 0) return '0';
+
+            const totals = {};
+            let hasNumber = false;
+
+            items.forEach(item => {
+                if (!item.cost) return;
+                const costStr = item.cost.trim();
+                if (!costStr) return;
+
+                // 提取貨幣符號/前綴（例如 ₩, NT$, $, 円）與數字
+                const match = costStr.match(/^([^\d\s,]+)?\s*([\d,]+(\.\d+)?)\s*([^\d\s,]+)?$/);
+                if (match) {
+                    const prefix = match[1] || '';
+                    const num = parseFloat(match[2].replace(/,/g, ''));
+                    const suffix = match[4] || '';
+                    const currency = (prefix + ' ' + suffix).trim() || '元';
+
+                    if (!isNaN(num)) {
+                        totals[currency] = (totals[currency] || 0) + num;
+                        hasNumber = true;
+                    }
+                } else {
+                    // 若無特定格式，嘗試合併數字
+                    const numOnly = parseFloat(costStr.replace(/[^\d.]/g, ''));
+                    if (!isNaN(numOnly)) {
+                        totals['元'] = (totals['元'] || 0) + numOnly;
+                        hasNumber = true;
+                    }
+                }
+            });
+
+            if (!hasNumber) return '0';
+
+            // 組合多貨幣統整字串
+            return Object.entries(totals)
+                .map(([curr, amt]) => `${curr === '元' ? '' : curr} ${amt.toLocaleString()}`)
+                .join(' + ');
+        }
+
         // --- 核心 UI 渲染 ---
         function renderApp() {
             const proj = getCurrentProject();
@@ -506,23 +545,34 @@
             const currentDay = proj.days[currentActiveDayIndex];
             if (!currentDay) return;
 
+            const dayTotalCostStr = calculateDayTotalCost(currentDay.items);
+
             const dayCard = document.createElement('div');
             dayCard.className = 'bg-white rounded-2xl p-6 shadow-sm border border-pink-100 mb-6';
 
-            // 天數頂部 (日期編輯與刪除天數)
+            // 天數頂部 (日期編輯、當日花費統計與刪除天數)
             dayCard.innerHTML = `
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-pink-100 pb-4 mb-6">
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-3 flex-wrap">
                         <h3 class="text-xl font-bold text-pink-700">Day ${currentDay.dayNumber}</h3>
                         <input type="date" value="${currentDay.date || ''}" onchange="updateDayDate(this.value)" class="text-xs px-2.5 py-1.5 border border-pink-200 rounded-lg text-slate-600 focus:outline-none focus:ring-1 focus:ring-pink-400">
                     </div>
-                    <div class="flex items-center gap-2 no-print">
-                        <button onclick="openModalForAdd()" class="px-3 py-1.5 bg-pink-50 text-pink-600 hover:bg-pink-100 border border-pink-200 rounded-lg text-xs font-semibold transition flex items-center gap-1">
-                            <i class="fa-solid fa-plus"></i> 新增行程
-                        </button>
-                        <button onclick="deleteDay(${currentActiveDayIndex})" class="px-2.5 py-1.5 text-slate-400 hover:text-red-500 text-xs transition" title="刪除此天">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
+
+                    <!-- 當日花費金額統整 -->
+                    <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                        <div class="bg-amber-50 text-amber-800 border border-amber-200/70 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-coins text-amber-600"></i>
+                            <span>當日花費：<strong class="text-amber-900 font-bold">${dayTotalCostStr}</strong></span>
+                        </div>
+
+                        <div class="flex items-center gap-2 no-print">
+                            <button onclick="openModalForAdd()" class="px-3 py-1.5 bg-pink-50 text-pink-600 hover:bg-pink-100 border border-pink-200 rounded-lg text-xs font-semibold transition flex items-center gap-1">
+                                <i class="fa-solid fa-plus"></i> 新增行程
+                            </button>
+                            <button onclick="deleteDay(${currentActiveDayIndex})" class="px-2.5 py-1.5 text-slate-400 hover:text-red-500 text-xs transition" title="刪除此天">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
@@ -542,7 +592,6 @@
                     </div>
                 `;
             } else {
-                // 依時間排序 (視需求)
                 currentDay.items.forEach((item) => {
                     const itemEl = createItemElement(item);
                     timeline.appendChild(itemEl);
@@ -765,7 +814,7 @@
             const container = document.getElementById('linkInputsContainer');
             container.innerHTML = '';
             if (linksArray.length === 0) {
-                addLinkInput(); // 預設提供一個空白行
+                addLinkInput();
             } else {
                 linksArray.forEach(l => addLinkInput(l.title, l.url));
             }
@@ -806,7 +855,7 @@
                 };
                 reader.readAsDataURL(files[i]);
             }
-            event.target.value = ''; // 重置 file input
+            event.target.value = '';
         }
 
         function addImageFromUrl() {
