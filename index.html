@@ -14,16 +14,24 @@
                 extend: {
                     colors: {
                         pink: {
-                            50: '#fdf2f8',
-                            100: '#fce7f3',
-                            200: '#fbcfe8',
-                            300: '#f9a8d4',
-                            400: '#f472b6',
-                            500: '#ec4899',
-                            600: '#db2777',
-                            700: '#be185d',
-                            800: '#9d174d',
-                            900: '#831843',
+                            50: '#fdf2f8', 100: '#fce7f3', 200: '#fbcfe8', 300: '#f9a8d4', 
+                            400: '#f472b6', 500: '#ec4899', 600: '#db2777', 700: '#be185d', 800: '#9d174d', 900: '#831843'
+                        },
+                        blue: {
+                            50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd', 300: '#7dd3fc', 
+                            400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 800: '#075985', 900: '#0c4a6e'
+                        },
+                        mono: {
+                            50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 
+                            400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a'
+                        },
+                        green: {
+                            50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac', 
+                            400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d'
+                        },
+                        purple: {
+                            50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff', 300: '#d8b4fe', 
+                            400: '#c084fc', 500: '#a855f7', 600: '#9333ea', 700: '#7e22ce', 800: '#6b21a8', 900: '#581c87'
                         }
                     }
                 }
@@ -34,7 +42,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
         body {
             font-family: 'Noto Sans TC', sans-serif;
-            background-color: #fdf2f8;
+            background-color: var(--bg-main, #fdf2f8);
         }
         /* 自訂捲軸 */
         ::-webkit-scrollbar {
@@ -42,14 +50,14 @@
             height: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #fce7f3;
+            background: var(--scroll-track, #fce7f3);
         }
         ::-webkit-scrollbar-thumb {
-            background: #f472b6;
+            background: var(--scroll-thumb, #f472b6);
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #db2777;
+            background: var(--scroll-thumb-hover, #db2777);
         }
         /* 匯出 PDF / 列印專用樣式 */
         @media print {
@@ -68,7 +76,7 @@
             }
             .bg-white {
                 box-shadow: none !important;
-                border: 1px solid #fbcfe8 !important;
+                border: 1px solid #cbd5e1 !important;
                 break-inside: avoid;
             }
             * {
@@ -78,10 +86,10 @@
         }
     </style>
 </head>
-<body class="min-h-screen text-slate-800 flex flex-col">
+<body class="min-h-screen text-slate-800 flex flex-col" id="appBody">
 
     <!-- 頂部 Header -->
-    <header class="bg-gradient-to-r from-pink-500 via-pink-400 to-rose-400 text-white shadow-md">
+    <header id="appHeader" class="bg-gradient-to-r from-pink-500 via-pink-400 to-rose-400 text-white shadow-md transition-colors duration-300">
         <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
                 <div class="p-2.5 bg-white/20 rounded-2xl backdrop-blur-sm cursor-pointer" onclick="openWelcomeModal()" title="使用說明與備份提醒">
@@ -89,7 +97,7 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold tracking-wide">旅遊行程規劃器</h1>
-                    <p class="text-xs text-pink-100 flex items-center gap-1">
+                    <p class="text-xs text-white/80 flex items-center gap-1">
                         <span>輕鬆打造你的專屬旅程</span>
                         <button onclick="openWelcomeModal()" class="underline hover:text-white ml-1 text-[11px]"><i class="fa-solid fa-circle-info mr-0.5"></i>使用說明</button>
                     </p>
@@ -98,6 +106,18 @@
 
             <!-- 專案與操作區塊 -->
             <div class="flex items-center gap-2 flex-wrap justify-end">
+                <!-- 色系選擇下拉選單 -->
+                <div class="flex items-center bg-white/20 backdrop-blur-sm rounded-lg p-1">
+                    <i class="fa-solid fa-palette text-white px-2 text-sm"></i>
+                    <select id="themeSelect" onchange="changeTheme(this.value)" class="bg-transparent text-white font-medium text-sm focus:outline-none pr-2 cursor-pointer border-none">
+                        <option value="pink" class="text-slate-800">粉色系</option>
+                        <option value="blue" class="text-slate-800">藍色系</option>
+                        <option value="mono" class="text-slate-800">黑白色系</option>
+                        <option value="green" class="text-slate-800">綠色系</option>
+                        <option value="purple" class="text-slate-800">紫色系</option>
+                    </select>
+                </div>
+
                 <!-- 專案選擇 -->
                 <div class="flex items-center bg-white/20 backdrop-blur-sm rounded-lg p-1">
                     <i class="fa-solid fa-folder-open text-white px-2 text-sm"></i>
@@ -128,7 +148,7 @@
                 <input type="file" id="importFile" accept=".json" onchange="importJSON(event)" class="hidden">
 
                 <!-- 匯出 PDF 按鈕 -->
-                <button onclick="exportToPDF()" class="px-3.5 py-1.5 bg-white text-pink-600 font-semibold rounded-lg text-sm shadow-md hover:bg-pink-50 transition flex items-center gap-1.5">
+                <button onclick="exportToPDF()" id="pdfBtn" class="px-3.5 py-1.5 bg-white text-pink-600 font-semibold rounded-lg text-sm shadow-md hover:bg-opacity-90 transition flex items-center gap-1.5">
                     <i class="fa-solid fa-file-pdf"></i> PDF
                 </button>
             </div>
@@ -139,7 +159,7 @@
     <main class="max-w-6xl mx-auto px-4 py-6 flex-1 w-full">
 
         <!-- 專案標題與概覽卡片 -->
-        <div class="bg-white rounded-2xl p-6 mb-6 shadow-sm border border-pink-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div class="bg-white rounded-2xl p-6 mb-6 shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
                 <h2 id="currentProjectTitle" class="text-2xl font-bold text-slate-800 mb-1">未命名行程</h2>
                 <p id="projectStats" class="text-sm text-slate-500">共 0 天 | 0 個行程項目</p>
@@ -147,7 +167,7 @@
 
             <!-- 頂部功能區 (天數導覽與新增) -->
             <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end no-print">
-                <button onclick="addDay()" class="px-4 py-2 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition shadow-sm font-medium flex items-center gap-2">
+                <button onclick="addDay()" id="addDayBtn" class="px-4 py-2 bg-pink-500 text-white rounded-xl hover:opacity-90 transition shadow-sm font-medium flex items-center gap-2">
                     <i class="fa-solid fa-calendar-plus"></i> 新增天數
                 </button>
             </div>
@@ -166,31 +186,31 @@
     </main>
 
     <!-- 頁尾 Footer -->
-    <footer class="bg-white border-t border-pink-100 py-4 text-center text-xs text-pink-400 no-print mt-auto">
+    <footer class="bg-white border-t border-slate-100 py-4 text-center text-xs text-slate-400 no-print mt-auto">
         <p>旅遊行程規劃器 &copy; Travel Planner by Jayla Kao</p>
     </footer>
 
     <!-- 初次進入 / 說明彈跳視窗 (Modal) -->
     <div id="welcomeModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-pink-200 space-y-4 relative animate-fade-in">
-            <div class="flex items-center gap-3 text-pink-600">
-                <div class="p-3 bg-pink-100 rounded-2xl">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 relative animate-fade-in">
+            <div class="flex items-center gap-3 text-pink-600" id="welcomeIconBox">
+                <div class="p-3 bg-pink-100 rounded-2xl" id="welcomeIconBg">
                     <i class="fa-solid fa-shield-heart text-2xl"></i>
                 </div>
                 <div>
                     <h3 class="text-lg font-bold text-slate-800">安心使用與資料保護提醒</h3>
-                    <p class="text-xs text-pink-500 font-medium">請詳細閱讀以下重要事項 💖</p>
+                    <p class="text-xs text-pink-500 font-medium" id="welcomeSubText">請詳細閱讀以下重要事項 💖</p>
                 </div>
             </div>
 
-            <div class="space-y-3 text-xs text-slate-600 leading-relaxed bg-pink-50/60 p-3.5 rounded-xl border border-pink-100">
+            <div class="space-y-3 text-xs text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-100">
                 <p>🔒 <strong>隱私安全承諾：</strong><br>本網站為純前端靜態網頁，<strong>後台伺服器不會存取或收集你的任何編輯內容與個人資料</strong>。所有的行程、照片與備註都僅安全地保存在你目前使用的瀏覽器中。</p>
                 
                 <p>⚠️ <strong>重要防範提醒：</strong><br>1. <strong>請不要隨意清除瀏覽器快取或網站資料</strong>，以免資料被清空。<br>2. <strong>請務必定期點擊頂部的「備份」按鈕</strong>，將行程下載儲存為 JSON 檔案。若更換手機、電腦或不幸清除快取時，才能透過「還原」按鈕完美復原！</p>
             </div>
 
             <div class="flex justify-end pt-2">
-                <button onclick="closeWelcomeModal()" class="w-full py-2.5 bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-xl text-sm transition shadow-sm">
+                <button onclick="closeWelcomeModal()" id="welcomeBtn" class="w-full py-2.5 bg-pink-500 hover:opacity-90 text-white font-semibold rounded-xl text-sm transition shadow-sm">
                     我知道了，開始規劃行程！
                 </button>
             </div>
@@ -199,11 +219,11 @@
 
     <!-- 新增 / 編輯行程 Modal 彈窗 -->
     <div id="modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-pink-100">
+        <div class="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-100">
             <!-- Modal Header -->
-            <div class="p-5 border-b border-pink-100 flex justify-between items-center bg-pink-50/50 sticky top-0 bg-white z-10">
-                <h3 id="modalTitle" class="text-lg font-bold text-pink-700">新增行程項目</h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-lg w-8 h-8 flex items-center justify-center rounded-full hover:bg-pink-100 transition">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 sticky top-0 bg-white z-10">
+                <h3 id="modalTitle" class="text-lg font-bold text-slate-800">新增行程項目</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-lg w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -215,26 +235,26 @@
                 <!-- 項目標題 -->
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">行程名稱 <span class="text-red-500">*</span></label>
-                    <input type="text" id="itemTitle" required placeholder="例如：景福宮韓服體驗 / 弘大甜點店" class="w-full px-3 py-2 border border-pink-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-400">
+                    <input type="text" id="itemTitle" required placeholder="例如：景福宮韓服體驗 / 弘大甜點店" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-400">
                 </div>
 
                 <!-- 時間區間 -->
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">開始時間</label>
-                        <input type="time" id="itemStartTime" class="w-full px-3 py-2 border border-pink-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-400">
+                        <input type="time" id="itemStartTime" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-400">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">結束時間</label>
-                        <input type="time" id="itemEndTime" class="w-full px-3 py-2 border border-pink-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-400">
+                        <input type="time" id="itemEndTime" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-400">
                     </div>
                 </div>
 
-                <!-- 類別與預算 -->
+                <!-- 類別與預算 (支援幣別下拉選單) -->
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">類別</label>
-                        <select id="itemCategory" class="w-full px-3 py-2 border border-pink-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white">
+                        <select id="itemCategory" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white">
                             <option value="star">⭐ 追星</option>
                             <option value="spot">📍 景點</option>
                             <option value="food">🍽️ 美食</option>
@@ -245,22 +265,31 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">預估費用 / 備註金額</label>
-                        <input type="text" id="itemCost" placeholder="例如：15000 或 NT$300" class="w-full px-3 py-2 border border-pink-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-400">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">預估費用 / 金額</label>
+                        <div class="flex gap-1">
+                            <select id="itemCurrency" class="w-24 px-2 py-2 border border-slate-200 rounded-lg text-xs font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400">
+                                <option value="NT$">台幣 NT$</option>
+                                <option value="₩">韓元 ₩</option>
+                                <option value="¥">日幣 ¥</option>
+                                <option value="$">美金 $</option>
+                                <option value="€">歐元 €</option>
+                            </select>
+                            <input type="text" id="itemCost" placeholder="例如：15000" class="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-400">
+                        </div>
                     </div>
                 </div>
 
                 <!-- 詳細備註 -->
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">詳細備註 / 事項</label>
-                    <textarea id="itemNotes" rows="3" placeholder="填寫地址、預約號碼、注意事項等..." class="w-full px-3 py-2 border border-pink-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-400"></textarea>
+                    <textarea id="itemNotes" rows="3" placeholder="填寫地址、預約號碼、注意事項等..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"></textarea>
                 </div>
 
                 <!-- 相關連結 (多個) -->
                 <div>
                     <div class="flex justify-between items-center mb-1">
                         <label class="block text-xs font-bold text-slate-700">相關連結 (地圖/官網/預約單)</label>
-                        <button type="button" onclick="addLinkInput()" class="text-xs text-pink-600 hover:text-pink-700 font-medium">+ 新增連結</button>
+                        <button type="button" onclick="addLinkInput()" class="text-xs text-pink-600 hover:underline font-medium" id="addLinkBtn">+ 新增連結</button>
                     </div>
                     <div id="linkInputsContainer" class="space-y-2">
                         <!-- 動態生成連結輸入框 -->
@@ -274,26 +303,24 @@
                         <span id="photoCountBadge" class="text-xs text-slate-400">0/5</span>
                     </div>
                     
-                    <!-- 本地上傳 / 貼上網址 -->
                     <div class="flex gap-2 mb-2">
                         <input type="file" id="imageFileInput" accept="image/*" multiple onchange="handleImageUpload(event)" class="hidden">
-                        <button type="button" onclick="document.getElementById('imageFileInput').click()" class="px-3 py-1.5 bg-pink-100 text-pink-700 rounded-lg text-xs font-medium hover:bg-pink-200 transition">
+                        <button type="button" onclick="document.getElementById('imageFileInput').click()" class="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium hover:bg-slate-200 transition">
                             <i class="fa-solid fa-upload"></i> 上傳圖片
                         </button>
-                        <input type="url" id="imageUrlInput" placeholder="或貼上圖片網址 https://..." class="flex-1 px-3 py-1 border border-pink-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-pink-400">
+                        <input type="url" id="imageUrlInput" placeholder="或貼上圖片網址 https://..." class="flex-1 px-3 py-1 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-slate-400">
                         <button type="button" onclick="addImageFromUrl()" class="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-medium hover:bg-slate-200 transition">新增</button>
                     </div>
 
-                    <!-- 預覽縮圖區 -->
                     <div id="imagePreviewContainer" class="flex flex-wrap gap-2 pt-1">
                         <!-- 動態插入圖片預覽 -->
                     </div>
                 </div>
 
                 <!-- Modal Footer 按鈕 -->
-                <div class="flex justify-end gap-2 pt-3 border-t border-pink-100">
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
                     <button type="button" onclick="closeModal()" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-sm hover:bg-slate-50 transition">取消</button>
-                    <button type="submit" class="px-5 py-2 bg-pink-500 text-white rounded-xl text-sm font-medium hover:bg-pink-600 transition shadow-sm">儲存行程</button>
+                    <button type="submit" id="modalSubmitBtn" class="px-5 py-2 bg-pink-500 text-white rounded-xl text-sm font-medium hover:opacity-90 transition shadow-sm">儲存行程</button>
                 </div>
             </form>
         </div>
@@ -314,23 +341,117 @@
         // 全局應用程式狀態
         let appData = {
             currentProjectId: null,
+            theme: 'pink',
             projects: []
         };
 
-        let currentActiveDayIndex = 0; // 目前選擇的天數索引 (0 即 Day 1)
-        let tempImages = []; // 彈窗內暫存的圖片陣列
+        let currentActiveDayIndex = 0;
+        let tempImages = [];
+
+        // 佈景主題色系對照表
+        const themes = {
+            pink: {
+                header: 'bg-gradient-to-r from-pink-500 via-pink-400 to-rose-400',
+                mainBg: '#fdf2f8',
+                track: '#fce7f3',
+                thumb: '#f472b6',
+                thumbHover: '#db2777',
+                primaryBtn: 'bg-pink-500 text-white',
+                primaryText: 'text-pink-600',
+                badgeBg: 'bg-pink-50',
+                badgeText: 'text-pink-700'
+            },
+            blue: {
+                header: 'bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-500',
+                mainBg: '#f0f9ff',
+                track: '#e0f2fe',
+                thumb: '#38bdf8',
+                thumbHover: '#0284c7',
+                primaryBtn: 'bg-blue-600 text-white',
+                primaryText: 'text-blue-600',
+                badgeBg: 'bg-blue-50',
+                badgeText: 'text-blue-700'
+            },
+            mono: {
+                header: 'bg-gradient-to-r from-slate-800 via-slate-700 to-slate-900',
+                mainBg: '#f8fafc',
+                track: '#f1f5f9',
+                thumb: '#64748b',
+                thumbHover: '#334155',
+                primaryBtn: 'bg-slate-800 text-white',
+                primaryText: 'text-slate-800',
+                badgeBg: 'bg-slate-100',
+                badgeText: 'text-slate-800'
+            },
+            green: {
+                header: 'bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500',
+                mainBg: '#f0fdf4',
+                track: '#dcfce7',
+                thumb: '#4ade80',
+                thumbHover: '#16a34a',
+                primaryBtn: 'bg-emerald-600 text-white',
+                primaryText: 'text-emerald-600',
+                badgeBg: 'bg-emerald-50',
+                badgeText: 'text-emerald-700'
+            },
+            purple: {
+                header: 'bg-gradient-to-r from-purple-600 via-violet-500 to-fuchsia-500',
+                mainBg: '#faf5ff',
+                track: '#f3e8ff',
+                thumb: '#c084fc',
+                thumbHover: '#9333ea',
+                primaryBtn: 'bg-purple-600 text-white',
+                primaryText: 'text-purple-600',
+                badgeBg: 'bg-purple-50',
+                badgeText: 'text-purple-700'
+            }
+        };
 
         // 頁面初始化
         window.addEventListener('DOMContentLoaded', () => {
             loadFromLocalStorage();
+            applyTheme(appData.theme || 'pink');
             renderProjectSelect();
             renderApp();
 
-            // 檢查是否為首次造訪，若無紀錄則彈出歡迎/說明視窗
             if (!localStorage.getItem('pink_travel_welcomed')) {
                 openWelcomeModal();
             }
         });
+
+        // --- 主題切換 ---
+        function changeTheme(themeKey) {
+            appData.theme = themeKey;
+            applyTheme(themeKey);
+            saveToLocalStorage();
+        }
+
+        function applyTheme(themeKey) {
+            const t = themes[themeKey] || themes.pink;
+            const header = document.getElementById('appHeader');
+            header.className = `${t.header} text-white shadow-md transition-colors duration-300`;
+
+            document.documentElement.style.setProperty('--bg-main', t.mainBg);
+            document.documentElement.style.setProperty('--scroll-track', t.track);
+            document.documentElement.style.setProperty('--scroll-thumb', t.thumb);
+            document.documentElement.style.setProperty('--scroll-thumb-hover', t.thumbHover);
+            document.getElementById('appBody').style.backgroundColor = t.mainBg;
+
+            // 更新按鈕樣式
+            const addDayBtn = document.getElementById('addDayBtn');
+            addDayBtn.className = `px-4 py-2 ${t.primaryBtn} rounded-xl hover:opacity-90 transition shadow-sm font-medium flex items-center gap-2`;
+
+            const modalSubmitBtn = document.getElementById('modalSubmitBtn');
+            modalSubmitBtn.className = `px-5 py-2 ${t.primaryBtn} rounded-xl text-sm font-medium hover:opacity-90 transition shadow-sm`;
+
+            const pdfBtn = document.getElementById('pdfBtn');
+            pdfBtn.className = `px-3.5 py-1.5 bg-white ${t.primaryText} font-semibold rounded-lg text-sm shadow-md hover:bg-opacity-90 transition flex items-center gap-1.5`;
+
+            const welcomeBtn = document.getElementById('welcomeBtn');
+            welcomeBtn.className = `w-full py-2.5 ${t.primaryBtn} hover:opacity-90 text-white font-semibold rounded-xl text-sm transition shadow-sm`;
+
+            document.getElementById('themeSelect').value = themeKey;
+        }
 
         // --- 彈跳視窗控制 ---
         function openWelcomeModal() {
@@ -373,6 +494,7 @@
             const defaultId = 'proj_' + Date.now();
             appData = {
                 currentProjectId: defaultId,
+                theme: 'pink',
                 projects: [
                     {
                         id: defaultId,
@@ -388,21 +510,10 @@
                                         startTime: '11:30',
                                         endTime: '13:00',
                                         category: 'transport',
-                                        cost: '₩10,000',
+                                        cost: '10,000',
+                                        currency: '₩',
                                         notes: '搭乘 AREX 直達列車前往首爾站，再轉乘地鐵至飯店寄放行李。',
                                         links: [{ title: 'AREX 預約憑證', url: 'https://www.arex.or.kr' }],
-                                        images: [],
-                                        completed: false
-                                    },
-                                    {
-                                        id: 'item_2',
-                                        title: '追星快閃店 / 應援咖啡廳',
-                                        startTime: '14:30',
-                                        endTime: '16:30',
-                                        category: 'star',
-                                        cost: '₩25,000',
-                                        notes: '記得領取周邊與集章禮物！展覽現場可拍照。',
-                                        links: [{ title: '咖啡廳地圖導航', url: 'https://map.naver.com' }],
                                         images: [],
                                         completed: false
                                     }
@@ -445,6 +556,7 @@
                             if (!appData.currentProjectId && appData.projects.length > 0) {
                                 appData.currentProjectId = appData.projects[0].id;
                             }
+                            if (appData.theme) applyTheme(appData.theme);
                             currentActiveDayIndex = 0;
                             saveToLocalStorage();
                             renderProjectSelect();
@@ -457,7 +569,7 @@
                 } catch(err) {
                     alert('解析 JSON 檔案失敗，請確認檔案格式是否正確。');
                 }
-                event.target.value = ''; // 重置 file input
+                event.target.value = '';
             };
             reader.readAsText(file);
         }
@@ -531,13 +643,27 @@
             }
         }
 
-        // --- 天數 (Days) 管理 ---
+        // --- 天數 (Days) 管理 (含日期自動接續功能) ---
         function addDay() {
             const proj = getCurrentProject();
             const newDayNum = proj.days.length + 1;
+            
+            let nextDateStr = '';
+            // 如果前一天有設定日期，自動幫忙加一天
+            if (proj.days.length > 0) {
+                const prevDate = proj.days[proj.days.length - 1].date;
+                if (prevDate) {
+                    const d = new Date(prevDate);
+                    if (!isNaN(d.getTime())) {
+                        d.setDate(d.getDate() + 1);
+                        nextDateStr = d.toISOString().split('T')[0];
+                    }
+                }
+            }
+
             proj.days.push({
                 dayNumber: newDayNum,
-                date: '',
+                date: nextDateStr,
                 items: []
             });
             currentActiveDayIndex = proj.days.length - 1;
@@ -553,7 +679,6 @@
             }
             if (confirm(`確定要刪除 Day ${dayIdx + 1} 嗎？其中的行程將一併清除。`)) {
                 proj.days.splice(dayIdx, 1);
-                // 重編 Day 序號
                 proj.days.forEach((d, idx) => d.dayNumber = idx + 1);
                 if (currentActiveDayIndex >= proj.days.length) {
                     currentActiveDayIndex = proj.days.length - 1;
@@ -563,7 +688,7 @@
             }
         }
 
-        // 計算並統計當天總花費
+        // 計算並統計當天總花費 (支援幣別加總)
         function calculateDayTotalCost(items) {
             if (!items || items.length === 0) return '0';
 
@@ -575,30 +700,19 @@
                 const costStr = item.cost.trim();
                 if (!costStr) return;
 
-                const match = costStr.match(/^([^\d\s,]+)?\s*([\d,]+(\.\d+)?)\s*([^\d\s,]+)?$/);
-                if (match) {
-                    const prefix = match[1] || '';
-                    const num = parseFloat(match[2].replace(/,/g, ''));
-                    const suffix = match[4] || '';
-                    const currency = (prefix + ' ' + suffix).trim() || '元';
+                const curr = item.currency || 'NT$';
+                const num = parseFloat(costStr.replace(/,/g, ''));
 
-                    if (!isNaN(num)) {
-                        totals[currency] = (totals[currency] || 0) + num;
-                        hasNumber = true;
-                    }
-                } else {
-                    const numOnly = parseFloat(costStr.replace(/[^\d.]/g, ''));
-                    if (!isNaN(numOnly)) {
-                        totals['元'] = (totals['元'] || 0) + numOnly;
-                        hasNumber = true;
-                    }
+                if (!isNaN(num)) {
+                    totals[curr] = (totals[curr] || 0) + num;
+                    hasNumber = true;
                 }
             });
 
             if (!hasNumber) return '0';
 
             return Object.entries(totals)
-                .map(([curr, amt]) => `${curr === '元' ? '' : curr} ${amt.toLocaleString()}`)
+                .map(([curr, amt]) => `${curr} ${amt.toLocaleString()}`)
                 .join(' + ');
         }
 
@@ -606,7 +720,6 @@
         function renderApp() {
             const proj = getCurrentProject();
 
-            // 渲染專案標題與統計
             document.getElementById('currentProjectTitle').textContent = proj.name;
             let totalItems = 0;
             proj.days.forEach(d => totalItems += d.items.length);
@@ -620,8 +733,8 @@
                 const btn = document.createElement('button');
                 btn.className = `px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition flex items-center gap-2 ${
                     isActive 
-                        ? 'bg-pink-500 text-white shadow-md' 
-                        : 'bg-white text-slate-600 hover:bg-pink-100/60 border border-pink-100'
+                        ? 'bg-slate-800 text-white shadow-md' 
+                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
                 }`;
                 btn.onclick = () => {
                     currentActiveDayIndex = idx;
@@ -641,14 +754,13 @@
             const dayTotalCostStr = calculateDayTotalCost(currentDay.items);
 
             const dayCard = document.createElement('div');
-            dayCard.className = 'bg-white rounded-2xl p-6 shadow-sm border border-pink-100 mb-6';
+            dayCard.className = 'bg-white rounded-2xl p-6 shadow-sm border border-slate-200 mb-6';
 
-            // 天數頂部 (日期編輯、當日花費統計與刪除天數)
             dayCard.innerHTML = `
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-pink-100 pb-4 mb-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-4 mb-6">
                     <div class="flex items-center gap-3 flex-wrap">
-                        <h3 class="text-xl font-bold text-pink-700">Day ${currentDay.dayNumber}</h3>
-                        <input type="date" value="${currentDay.date || ''}" onchange="updateDayDate(this.value)" class="text-xs px-2.5 py-1.5 border border-pink-200 rounded-lg text-slate-600 focus:outline-none focus:ring-1 focus:ring-pink-400">
+                        <h3 class="text-xl font-bold text-slate-800">Day ${currentDay.dayNumber}</h3>
+                        <input type="date" value="${currentDay.date || ''}" onchange="updateDayDate(this.value)" class="text-xs px-2.5 py-1.5 border border-slate-200 rounded-lg text-slate-600 focus:outline-none focus:ring-1 focus:ring-slate-400">
                     </div>
 
                     <!-- 當日花費金額統整 -->
@@ -659,7 +771,7 @@
                         </div>
 
                         <div class="flex items-center gap-2 no-print">
-                            <button onclick="openModalForAdd()" class="px-3 py-1.5 bg-pink-50 text-pink-600 hover:bg-pink-100 border border-pink-200 rounded-lg text-xs font-semibold transition flex items-center gap-1">
+                            <button onclick="openModalForAdd()" class="px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 rounded-lg text-xs font-semibold transition flex items-center gap-1">
                                 <i class="fa-solid fa-plus"></i> 新增行程
                             </button>
                             <button onclick="deleteDay(${currentActiveDayIndex})" class="px-2.5 py-1.5 text-slate-400 hover:text-red-500 text-xs transition" title="刪除此天">
@@ -669,17 +781,15 @@
                     </div>
                 </div>
                 
-                <!-- 行程時間軸清單 -->
                 <div id="itemsTimeline" class="space-y-4"></div>
             `;
 
             contentArea.appendChild(dayCard);
 
-            // 渲染行程卡片
             const timeline = document.getElementById('itemsTimeline');
             if (currentDay.items.length === 0) {
                 timeline.innerHTML = `
-                    <div class="text-center py-12 text-pink-300">
+                    <div class="text-center py-12 text-slate-400">
                         <i class="fa-solid fa-calendar-day text-4xl mb-3 block"></i>
                         <p class="text-sm">這一天還沒有安排行程，點擊右上角「新增行程」開始規劃吧！</p>
                     </div>
@@ -699,14 +809,12 @@
             renderApp();
         }
 
-        // 建立單一行程卡片 HTML
         function createItemElement(item) {
             const card = document.createElement('div');
             card.className = `p-4 rounded-xl border transition relative ${
-                item.completed ? 'bg-pink-50/40 border-pink-100 opacity-75' : 'bg-white border-pink-100 shadow-sm hover:border-pink-300'
+                item.completed ? 'bg-slate-50 border-slate-200 opacity-75' : 'bg-white border-slate-200 shadow-sm hover:border-slate-300'
             }`;
 
-            // 類別標籤樣式對照
             const categoryMap = {
                 star: { name: '追星', class: 'bg-purple-100 text-purple-700 border-purple-200', icon: 'fa-star' },
                 spot: { name: '景點', class: 'bg-rose-100 text-rose-700 border-rose-200', icon: 'fa-location-dot' },
@@ -719,40 +827,38 @@
 
             const cat = categoryMap[item.category] || categoryMap.other;
 
-            // 連結列 HTML
             let linksHTML = '';
             if (item.links && item.links.length > 0) {
                 linksHTML = `<div class="flex flex-wrap gap-2 mt-2">` +
                     item.links.map(l => `
-                        <a href="${l.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs text-pink-600 bg-pink-50 hover:bg-pink-100 border border-pink-200 px-2 py-0.5 rounded-md transition">
+                        <a href="${l.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 px-2 py-0.5 rounded-md transition">
                             <i class="fa-solid fa-link text-[10px]"></i> ${escapeHtml(l.title || '相關連結')}
                         </a>
                     `).join('') +
                     `</div>`;
             }
 
-            // 圖片列 HTML
             let imagesHTML = '';
             if (item.images && item.images.length > 0) {
                 imagesHTML = `<div class="flex flex-wrap gap-2 mt-3">` +
                     item.images.map(imgSrc => `
-                        <img src="${imgSrc}" onclick="openImageModal('${imgSrc}')" class="w-16 h-16 object-cover rounded-lg border border-pink-200 cursor-pointer hover:opacity-90 transition shadow-sm">
+                        <img src="${imgSrc}" onclick="openImageModal('${imgSrc}')" class="w-16 h-16 object-cover rounded-lg border border-slate-200 cursor-pointer hover:opacity-90 transition shadow-sm">
                     `).join('') +
                     `</div>`;
             }
 
-            // 時間區間格式化
             let timeDisplay = '';
             if (item.startTime || item.endTime) {
-                timeDisplay = `<span class="text-xs font-semibold text-pink-600 bg-pink-50 px-2 py-1 rounded-md border border-pink-100"><i class="fa-regular fa-clock mr-1"></i>${item.startTime || ''}${item.startTime && item.endTime ? ' - ' : ''}${item.endTime || ''}</span>`;
+                timeDisplay = `<span class="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-1 rounded-md border border-slate-200"><i class="fa-regular fa-clock mr-1"></i>${item.startTime || ''}${item.startTime && item.endTime ? ' - ' : ''}${item.endTime || ''}</span>`;
             }
+
+            const costDisplay = item.cost ? `${item.currency || 'NT$'} ${item.cost}` : '';
 
             card.innerHTML = `
                 <div class="flex items-start justify-between gap-3">
                     <div class="flex items-start gap-3 flex-1">
-                        <!-- 完成勾選框 -->
-                        <button onclick="toggleItemComplete('${item.id}')" class="mt-1 text-slate-300 hover:text-pink-500 transition no-print">
-                            <i class="${item.completed ? 'fa-solid fa-circle-check text-pink-500 text-lg' : 'fa-regular fa-circle text-lg'}"></i>
+                        <button onclick="toggleItemComplete('${item.id}')" class="mt-1 text-slate-300 hover:text-slate-600 transition no-print">
+                            <i class="${item.completed ? 'fa-solid fa-circle-check text-slate-700 text-lg' : 'fa-regular fa-circle text-lg'}"></i>
                         </button>
                         
                         <div class="flex-1">
@@ -764,16 +870,15 @@
                                 <h4 class="font-bold text-slate-800 text-base ${item.completed ? 'line-through text-slate-400' : ''}">${escapeHtml(item.title)}</h4>
                             </div>
 
-                            ${item.cost ? `<div class="text-xs font-medium text-amber-700 mb-1"><i class="fa-solid fa-coins mr-1"></i>${escapeHtml(item.cost)}</div>` : ''}
-                            ${item.notes ? `<p class="text-xs text-slate-600 whitespace-pre-line leading-relaxed mt-1 bg-slate-50/80 p-2 rounded-lg border border-slate-100">${escapeHtml(item.notes)}</p>` : ''}
+                            ${costDisplay ? `<div class="text-xs font-medium text-amber-700 mb-1"><i class="fa-solid fa-coins mr-1"></i>${escapeHtml(costDisplay)}</div>` : ''}
+                            ${item.notes ? `<p class="text-xs text-slate-600 whitespace-pre-line leading-relaxed mt-1 bg-slate-50 p-2 rounded-lg border border-slate-100">${escapeHtml(item.notes)}</p>` : ''}
                             ${linksHTML}
                             ${imagesHTML}
                         </div>
                     </div>
 
-                    <!-- 操作按鈕 -->
                     <div class="flex items-center gap-1 no-print">
-                        <button onclick="openModalForEdit('${item.id}')" class="p-1.5 text-slate-400 hover:text-pink-600 rounded-md hover:bg-pink-50 transition" title="編輯">
+                        <button onclick="openModalForEdit('${item.id}')" class="p-1.5 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-100 transition" title="編輯">
                             <i class="fa-solid fa-pen text-xs"></i>
                         </button>
                         <button onclick="deleteItem('${item.id}')" class="p-1.5 text-slate-400 hover:text-red-500 rounded-md hover:bg-red-50 transition" title="刪除">
@@ -786,7 +891,6 @@
             return card;
         }
 
-        // --- 行程增刪改查 ---
         function toggleItemComplete(itemId) {
             const proj = getCurrentProject();
             const item = proj.days[currentActiveDayIndex].items.find(i => i.id === itemId);
@@ -807,11 +911,11 @@
             }
         }
 
-        // --- Modal 彈窗與 Form 邏輯 ---
         function openModalForAdd() {
             document.getElementById('modalTitle').textContent = '新增行程項目';
             document.getElementById('editItemId').value = '';
             document.getElementById('itemForm').reset();
+            document.getElementById('itemCurrency').value = 'NT$';
             tempImages = [];
             renderImagePreviews();
             renderLinkInputs([]);
@@ -829,6 +933,7 @@
             document.getElementById('itemStartTime').value = item.startTime || '';
             document.getElementById('itemEndTime').value = item.endTime || '';
             document.getElementById('itemCategory').value = item.category || 'spot';
+            document.getElementById('itemCurrency').value = item.currency || 'NT$';
             document.getElementById('itemCost').value = item.cost || '';
             document.getElementById('itemNotes').value = item.notes || '';
 
@@ -853,6 +958,7 @@
             const startTime = document.getElementById('itemStartTime').value;
             const endTime = document.getElementById('itemEndTime').value;
             const category = document.getElementById('itemCategory').value;
+            const currency = document.getElementById('itemCurrency').value;
             const cost = document.getElementById('itemCost').value.trim();
             const notes = document.getElementById('itemNotes').value.trim();
 
@@ -873,6 +979,7 @@
                     item.startTime = startTime;
                     item.endTime = endTime;
                     item.category = category;
+                    item.currency = currency;
                     item.cost = cost;
                     item.notes = notes;
                     item.links = links;
@@ -885,6 +992,7 @@
                     startTime,
                     endTime,
                     category,
+                    currency,
                     cost,
                     notes,
                     links,
@@ -899,7 +1007,6 @@
             renderApp();
         }
 
-        // --- 連結動態欄位 ---
         function renderLinkInputs(linksArray = []) {
             const container = document.getElementById('linkInputsContainer');
             container.innerHTML = '';
@@ -915,8 +1022,8 @@
             const row = document.createElement('div');
             row.className = 'flex gap-2 items-center link-input-row';
             row.innerHTML = `
-                <input type="text" placeholder="名稱 (例: 地圖)" value="${escapeHtml(title)}" class="w-1/3 px-2.5 py-1.5 border border-pink-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-pink-400 link-title-input">
-                <input type="url" placeholder="網址 https://..." value="${escapeHtml(url)}" class="flex-1 px-2.5 py-1.5 border border-pink-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-pink-400 link-url-input">
+                <input type="text" placeholder="名稱 (例: 地圖)" value="${escapeHtml(title)}" class="w-1/3 px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-slate-400 link-title-input">
+                <input type="url" placeholder="網址 https://..." value="${escapeHtml(url)}" class="flex-1 px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-slate-400 link-url-input">
                 <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-red-500 px-1 text-xs">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
@@ -924,7 +1031,6 @@
             container.appendChild(row);
         }
 
-        // --- 圖片處理 (最多 5 張) ---
         function handleImageUpload(event) {
             const files = event.target.files;
             if (!files) return;
@@ -976,7 +1082,7 @@
             container.innerHTML = '';
             tempImages.forEach((imgSrc, idx) => {
                 const div = document.createElement('div');
-                div.className = 'relative w-16 h-16 rounded-lg overflow-hidden border border-pink-200 group';
+                div.className = 'relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200 group';
                 div.innerHTML = `
                     <img src="${imgSrc}" class="w-full h-full object-cover">
                     <button type="button" onclick="removeTempImage(${idx})" class="absolute top-0 right-0 bg-red-500/80 text-white w-5 h-5 flex items-center justify-center text-[10px] hover:bg-red-600 transition">
@@ -987,7 +1093,6 @@
             });
         }
 
-        // --- Lightbox 圖片放大 ---
         function openImageModal(src) {
             document.getElementById('lightboxImage').src = src;
             document.getElementById('imageModal').classList.remove('hidden');
@@ -997,12 +1102,10 @@
             document.getElementById('imageModal').classList.add('hidden');
         }
 
-        // --- 匯出成 PDF 功能 ---
         function exportToPDF() {
             window.print();
         }
 
-        // --- 工具函數：字串轉義防止 XSS ---
         function escapeHtml(str) {
             if (!str) return '';
             return str
