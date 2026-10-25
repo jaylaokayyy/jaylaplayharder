@@ -59,6 +59,44 @@
             background-color: #e2e8f0;
             z-index: 0;
         }
+        /* 匯出 PDF / 列印專用樣式 */
+@media print {
+    /* 隱藏不需要列印的 UI 元素 (如按鈕、表單、頂部導覽列、頁尾) */
+    header, 
+    nav, 
+    button, 
+    .no-print,
+    #modal,
+    #imageModal {
+        display: none !important;
+    }
+
+    /* 調整背景與版面，確保列印顏色正常 */
+    body {
+        background-color: white !important;
+        color: black !important;
+        padding: 0 !important;
+    }
+
+    main {
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* 確保卡片與時間軸列印時不被切斷 */
+    .bg-white {
+        box-shadow: none !important;
+        border: 1px solid #e5e7eb !important;
+        break-inside: avoid;
+    }
+
+    /* 強制顯示背景顏色與標籤色彩 */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col selection:bg-primary-500 selection:text-white">
