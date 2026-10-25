@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的旅遊行程規劃器 | Travel Planner</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome 圖標庫 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Noto Sans TC -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                        },
+                        secondary: {
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 隱藏滾動條但保持滾動 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* 時間軸連接線 */
+        .timeline-line::before {
+            content: '';
+            position: absolute;
+            top: 28px;
+            bottom: 0;
+            left: 19px;
+            width: 2px;
+            background-color: #e2e8f0;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col selection:bg-primary-500 selection:text-white">
+
+    <!-- 頂部導覽列 Header -->
+    <header class="bg-gradient-to-r from-sky-600 via-teal-600 to-emerald-600 text-white shadow-md">
+        <div class="max-w-6xl mx-auto px-4 py-4 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="p-2.5 bg-white/20 backdrop-blur-md rounded-2xl shadow-inner">
+                    <i class="fa-solid fa-plane-departure text-2xl text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold tracking-tight">旅遊行程規劃器</h1>
+                    <p class="text-xs text-sky-100 opacity-90">輕鬆規劃自由行，隨時隨地記錄點滴</p>
+                </div>
+            </div>
+            
+            <!-- 工具列按鈕 -->
+            <div class="flex items-center space-x-2 text-sm">
+                <button onclick="exportData()" title="匯出行程 JSON 檔" class="px-3 py-2 bg-white/10 hover:bg-white/20 active:bg-white/30 backdrop-blur-md rounded-xl transition duration-150 flex items-center space-x-1.5 border border-white/20">
+                    <i class="fa-solid fa-file-export"></i>
+                    <span class="hidden sm:inline">匯出行程</span>
+                </button>
+                <button onclick="document.getElementById('importFileInput').click()" title="匯入行程 JSON 檔" class="px-3 py-2 bg-white/10 hover:bg-white/20 active:bg-white/30 backdrop-blur-md rounded-xl transition duration-150 flex items-center space-x-1.5 border border-white/20">
+                    <i class="fa-solid fa-file-import"></i>
+                    <span class="hidden sm:inline">匯入行程</span>
+                </button>
+                <input type="file" id="importFileInput" accept=".json" class="hidden" onchange="importData(event)">
+                
+                <button onclick="resetAllData()" title="清空所有資料" class="px-3 py-2 bg-red-500/30 hover:bg-red-500/50 active:bg-red-500/70 backdrop-blur-md rounded-xl transition duration-150 flex items-center space-x-1.5 border border-white/20 text-red-100">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span class="hidden sm:inline">重置全部</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要內容區 -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 sm:px-6">
+        
+        <!-- 頂部統計數據 DashBoard -->
+        <div class="grid grid-cols-3 gap-3 sm:gap-6 mb-6">
+            <div class="bg-white p-3 sm:p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-3 sm:space-x-4">
+                <div class="p-2.5 sm:p-3.5 bg-sky-50 text-sky-600 rounded-xl">
+                    <i class="fa-regular fa-calendar-days text-lg sm:text-2xl"></i>
+                </div>
+                <div>
+                    <div class="text-xs sm:text-sm text-slate-500 font-medium">總天數</div>
+                    <div class="text-lg sm:text-2xl font-bold text-slate-800" id="statDays">0 天</div>
+                </div>
+            </div>
+
+            <div class="bg-white p-3 sm:p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-3 sm:space-x-4">
+                <div class="p-2.5 sm:p-3.5 bg-teal-50 text-teal-600 rounded-xl">
+                    <i class="fa-solid fa-map-pin text-lg sm:text-2xl"></i>
+                </div>
+                <div>
+                    <div class="text-xs sm:text-sm text-slate-500 font-medium">總景點/項目</div>
+                    <div class="text-lg sm:text-2xl font-bold text-slate-800" id="statEvents">0 個</div>
+                </div>
+            </div>
+
+            <div class="bg-white p-3 sm:p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-3 sm:space-x-4">
+                <div class="p-2.5 sm:p-3.5 bg-amber-50 text-amber-600 rounded-xl">
+                    <i class="fa-solid fa-sack-dollar text-lg sm:text-2xl"></i>
+                </div>
+                <div>
+                    <div class="text-xs sm:text-sm text-slate-500 font-medium">預估總開銷</div>
+                    <div class="text-lg sm:text-2xl font-bold text-slate-800" id="statCost">$0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 天數切換 Tab 標籤區 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-2 sm:p-3 mb-6">
+            <div class="flex items-center space-x-2 overflow-x-auto no-scrollbar py-1" id="dayTabsContainer">
+                <!-- Day Tabs 會由 JS 動態生成 -->
+            </div>
+        </div>
+
+        <!-- 當天行程與標題設置區 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6 mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 mb-6">
+                <!-- 天數名稱與日期編輯 -->
+                <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 font-medium mb-1">天數名稱</label>
+                        <input type="text" id="dayTitleInput" onchange="updateDayMeta()" placeholder="如：Day 1 高雄輕旅行" 
+                               class="w-full px-3 py-1.5 text-base font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 focus:bg-white outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 font-medium mb-1">日期（選填）</label>
+                        <input type="date" id="dayDateInput" onchange="updateDayMeta()" 
+                               class="w-full px-3 py-1.5 text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 focus:bg-white outline-none transition">
+                    </div>
+                </div>
+
+                <!-- 當日功能按鈕 -->
+                <div class="flex items-center space-x-2 justify-end pt-2 sm:pt-0">
+                    <button onclick="openEventModal()" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white rounded-xl text-sm font-medium shadow-sm hover:shadow transition flex items-center space-x-1.5">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>新增行程</span>
+                    </button>
+                    <button onclick="deleteCurrentDay()" title="刪除此天數" class="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-sm font-medium transition">
+                        <i class="fa-regular fa-trash-can"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 時間軸行程清單 -->
+            <div id="eventsTimeline" class="relative space-y-4">
+                <!-- 行程卡片由 JS 動態動態寫入 -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- 頁腳 Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-400">
+        <p>旅遊行程規劃器 &copy; <span id="year"></span> | 免費開源，資料全程存於個人瀏覽器中</p>
+    </footer>
+
+    <!-- 新增/編輯行程 Modal 彈窗 -->
+    <div id="eventModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden transform transition-all">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="text-base font-bold text-slate-800" id="modalTitle">新增行程項目</h3>
+                <button onclick="closeEventModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Modal Form Body -->
+            <form id="eventForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4">
+                <input type="hidden" id="eventId">
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">時間 *</label>
+                        <input type="time" id="eventTime" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">類別 *</label>
+                        <select id="eventCategory" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 outline-none">
+                            <option value="景點">🎡 景點</option>
+                            <option value="美食">🍜 美食</option>
+                            <option value="交通">🚆 交通</option>
+                            <option value="住宿">🏨 住宿</option>
+                            <option value="購物">🛍️ 購物</option>
+                            <option value="其他">📌 其他</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">行程名稱/地點 *</label>
+                    <input type="text" id="eventTitle" placeholder="例如：駁二藝術特區" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">預估費用 (NT$)</label>
+                    <input type="number" id="eventCost" placeholder="例如：150（無則留空）" min="0" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">詳細備註 / 連結</label>
+                    <textarea id="eventNotes" rows="3" placeholder="例如：搭乘輕軌至 C12 站；記得攜帶門票優惠券" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 outline-none"></textarea>
+                </div>
+
+                <!-- Modal Actions -->
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeEventModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-medium transition">取消</button>
+                    <button type="submit" class="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-sm font-medium shadow-sm transition">儲存行程</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript 邏輯處理 -->
+    <script>
+        // 預設範例資料（初次使用者可看到）
+        const DEFAULT_DATA = [
+            {
+                id: "day_1",
+                title: "Day 1 高雄港灣之旅",
+                date: "2026-11-20",
+                events: [
+                    {
+                        id: "evt_1",
+                        time: "10:00",
+                        title: "搭乘高鐵抵達左營站",
+                        category: "交通",
+                        cost: 1490,
+                        notes: "轉乘高雄捷運紅線至美麗島站",
+                        completed: true
+                    },
+                    {
+                        id: "evt_2",
+                        time: "12:30",
+                        title: "鴨肉珍（鹽埕區老店）",
+                        category: "美食",
+                        cost: 180,
+                        notes: "必點鴨肉飯與下水湯，內用先找座位",
+                        completed: false
+                    },
+                    {
+                        id: "evt_3",
+                        time: "14:30",
+                        title: "駁二藝術特區 & 棧貳庫",
+                        category: "景點",
+                        cost: 0,
+                        notes: "搭乘輕軌可欣賞港灣景色，逛手創市集",
+                        completed: false
+                    },
+                    {
+                        id: "evt_4",
+                        time: "18:30",
+                        title: "入住城市商旅真愛館",
+                        category: "住宿",
+                        cost: 2400,
+                        notes: "辦理入住，高樓層視野佳",
+                        completed: false
+                    }
+                ]
+            },
+            {
+                id: "day_2",
+                title: "Day 2 旗津海邊散策",
+                date: "2026-11-21",
+                events: [
+                    {
+                        id: "evt_5",
+                        time: "09:30",
+                        title: "鼓山輪渡站搭渡輪至旗津",
+                        category: "交通",
+                        cost: 30,
+                        notes: "刷悠遊卡/一卡通皆可，船程約 5 分鐘",
+                        completed: false
+                    },
+                    {
+                        id: "evt_6",
+                        time: "10:30",
+                        title: "旗后燈塔 & 旗津彩虹教堂",
+                        category: "景點",
+                        cost: 0,
+                        notes: "拍照打卡聖地，帶防曬用品",
+                        completed: false
+                    }
+                ]
+            }
+        ];
+
+        // 應用程式狀態 State
+        let tripData = [];
+        let currentDayIndex = 0;
+
+        // 類別 Badge 顏色標籤映射
+        const CATEGORY_COLORS = {
+            '景點': 'bg-sky-100 text-sky-700 border-sky-200',
+            '美食': 'bg-orange-100 text-orange-700 border-orange-200',
+            '交通': 'bg-indigo-100 text-indigo-700 border-indigo-200',
+            '住宿': 'bg-purple-100 text-purple-700 border-purple-200',
+            '購物': 'bg-pink-100 text-pink-700 border-pink-200',
+            '其他': 'bg-slate-100 text-slate-700 border-slate-200'
+        };
+
+        // 初始化
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('year').textContent = new Date().getFullYear();
+            loadData();
+            render();
+        });
+
+        // 載入資料 (從 localStorage)
+        function loadData() {
+            const saved = localStorage.getItem('travel_planner_data');
+            if (saved) {
+                try {
+                    tripData = JSON.parse(saved);
+                } catch (e) {
+                    console.error('資料解析失敗，載入預設資料', e);
+                    tripData = [...DEFAULT_DATA];
+                }
+            } else {
+                tripData = [...DEFAULT_DATA];
+            }
+        }
+
+        // 儲存資料至 localStorage
+        function saveData() {
+            localStorage.setItem('travel_planner_data', JSON.stringify(tripData));
+            updateStats();
+        }
+
+        // 核心渲染 Render
+        function render() {
+            if (tripData.length === 0) {
+                addNewDay();
+                return;
+            }
+
+            if (currentDayIndex >= tripData.length) {
+                currentDayIndex = tripData.length - 1;
+            }
+
+            renderTabs();
+            renderCurrentDayDetails();
+            updateStats();
+        }
+
+        // 渲染 Day 標籤列
+        function renderTabs() {
+            const container = document.getElementById('dayTabsContainer');
+            container.innerHTML = '';
+
+            tripData.forEach((day, index) => {
+                const isActive = index === currentDayIndex;
+                const tabBtn = document.createElement('button');
+                tabBtn.className = `px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all duration-150 flex items-center space-x-2 ${
+                    isActive 
+                        ? 'bg-sky-600 text-white shadow-md' 
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                }`;
+                
+                tabBtn.innerHTML = `
+                    <span>${day.title || 'Day ' + (index + 1)}</span>
+                    <span class="text-xs px-1.5 py-0.5 rounded-full ${isActive ? 'bg-sky-700 text-sky-100' : 'bg-slate-200 text-slate-500'}">${day.events.length}</span>
+                `;
+                tabBtn.onclick = () => {
+                    currentDayIndex = index;
+                    render();
+                };
+                container.appendChild(tabBtn);
+            });
+
+            // 新增天數按鈕
+            const addDayBtn = document.createElement('button');
+            addDayBtn.className = 'px-3 py-2 rounded-xl text-sm font-medium bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 whitespace-nowrap transition flex items-center space-x-1';
+            addDayBtn.innerHTML = `<i class="fa-solid fa-plus text-xs"></i><span>新增天數</span>`;
+            addDayBtn.onclick = addNewDay;
+            container.appendChild(addDayBtn);
+        }
+
+        // 渲染當日詳細內容
+        function renderCurrentDayDetails() {
+            const currentDay = tripData[currentDayIndex];
+            
+            // 填入 Meta Input
+            document.getElementById('dayTitleInput').value = currentDay.title || '';
+            document.getElementById('dayDateInput').value = currentDay.date || '';
+
+            // 按時間排序 events
+            currentDay.events.sort((a, b) => a.time.localeCompare(b.time));
+
+            const container = document.getElementById('eventsTimeline');
+            container.innerHTML = '';
+
+            if (currentDay.events.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="w-16 h-16 bg-sky-50 text-sky-400 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fa-solid fa-route text-2xl"></i>
+                        </div>
+                        <p class="text-slate-500 text-sm font-medium">今天還沒有安排任何行程喔！</p>
+                        <p class="text-slate-400 text-xs mt-1">點擊上方「新增行程」按鈕開始規劃吧！</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // 加入時間軸貫穿線類別
+            container.classList.add('timeline-line');
+
+            currentDay.events.forEach((evt) => {
+                const categoryClass = CATEGORY_COLORS[evt.category] || CATEGORY_COLORS['其他'];
+                const card = document.createElement('div');
+                card.className = `relative pl-10 transition-all duration-200 ${evt.completed ? 'opacity-55' : 'opacity-100'}`;
+                
+                card.innerHTML = `
+                    <!-- 時間軸節點 Icon -->
+                    <button onclick="toggleEventComplete('${evt.id}')" title="${evt.completed ? '標記為未完成' : '標記為已完成'}" class="absolute left-2 top-3 w-6 h-6 rounded-full flex items-center justify-center border-2 z-10 transition ${
+                        evt.completed 
+                            ? 'bg-emerald-500 border-emerald-500 text-white' 
+                            : 'bg-white border-slate-300 hover:border-sky-500 text-transparent'
+                    }">
+                        <i class="fa-solid fa-check text-xs"></i>
+                    </button>
+
+                    <!-- 行程主要內容卡片 -->
+                    <div class="bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 rounded-2xl p-4 transition shadow-sm hover:shadow">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                            <div class="flex items-center space-x-2">
+                                <span class="font-mono font-bold text-sky-700 text-sm bg-sky-100/80 px-2.5 py-0.5 rounded-lg">${evt.time}</span>
+                                <span class="text-xs px-2 py-0.5 rounded-md border font-medium ${categoryClass}">${evt.category}</span>
+                            </div>
+                            
+                            <!-- 操作按鈕 -->
+                            <div class="flex items-center space-x-1 self-end sm:self-auto">
+                                <button onclick="editEvent('${evt.id}')" class="p-1.5 text-slate-400 hover:text-sky-600 rounded-lg hover:bg-white transition" title="編輯">
+                                    <i class="fa-regular fa-pen-to-square"></i>
+                                </button>
+                                <button onclick="deleteEvent('${evt.id}')" class="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-white transition" title="刪除">
+                                    <i class="fa-regular fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 標題與金額 -->
+                        <div class="flex justify-between items-start gap-2">
+                            <h4 class="font-bold text-slate-800 text-base ${evt.completed ? 'line-through text-slate-500' : ''}">${escapeHtml(evt.title)}</h4>
+                            ${evt.cost ? `<span class="text-sm font-semibold text-emerald-600 whitespace-nowrap">NT$ ${evt.cost.toLocaleString()}</span>` : ''}
+                        </div>
+
+                        <!-- 備註說明 -->
+                        ${evt.notes ? `
+                            <p class="text-xs text-slate-500 mt-2 bg-white/60 p-2.5 rounded-xl border border-slate-100 whitespace-pre-line">${escapeHtml(evt.notes)}</p>
+                        ` : ''}
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        // 更新當日名稱與日期
+        function updateDayMeta() {
+            const title = document.getElementById('dayTitleInput').value.trim();
+            const date = document.getElementById('dayDateInput').value;
+
+            tripData[currentDayIndex].title = title || `Day ${currentDayIndex + 1}`;
+            tripData[currentDayIndex].date = date;
+
+            saveData();
+            renderTabs();
+        }
+
+        // 新增一天
+        function addNewDay() {
+            const newDayNum = tripData.length + 1;
+            tripData.push({
+                id: 'day_' + Date.now(),
+                title: `Day ${newDayNum}`,
+                date: '',
+                events: []
+            });
+            currentDayIndex = tripData.length - 1;
+            saveData();
+            render();
+        }
+
+        // 刪除當前天數
+        function deleteCurrentDay() {
+            if (tripData.length <= 1) {
+                alert('旅行至少需要保留一天喔！');
+                return;
+            }
+            if (confirm(`確定要刪除「${tripData[currentDayIndex].title}」及其所有行程嗎？`)) {
+                tripData.splice(currentDayIndex, 1);
+                currentDayIndex = Math.max(0, currentDayIndex - 1);
+                saveData();
+                render();
+            }
+        }
+
+        // 切換行程完成狀態 Checkbox
+        function toggleEventComplete(eventId) {
+            const evt = tripData[currentDayIndex].events.find(e => e.id === eventId);
+            if (evt) {
+                evt.completed = !evt.completed;
+                saveData();
+                renderCurrentDayDetails();
+            }
+        }
+
+        // 打開 Modal 視窗（新增 / 編輯）
+        function openEventModal(isEdit = false) {
+            document.getElementById('modalTitle').textContent = isEdit ? '編輯行程項目' : '新增行程項目';
+            document.getElementById('eventModal').classList.remove('hidden');
+        }
+
+        // 關閉 Modal 視窗
+        function closeEventModal() {
+            document.getElementById('eventModal').classList.add('hidden');
+            document.getElementById('eventForm').reset();
+            document.getElementById('eventId').value = '';
+        }
+
+        // 編輯行程
+        function editEvent(eventId) {
+            const evt = tripData[currentDayIndex].events.find(e => e.id === eventId);
+            if (!evt) return;
+
+            document.getElementById('eventId').value = evt.id;
+            document.getElementById('eventTime').value = evt.time;
+            document.getElementById('eventCategory').value = evt.category;
+            document.getElementById('eventTitle').value = evt.title;
+            document.getElementById('eventCost').value = evt.cost || '';
+            document.getElementById('eventNotes').value = evt.notes || '';
+
+            openEventModal(true);
+        }
+
+        // 刪除單一行程
+        function deleteEvent(eventId) {
+            if (confirm('確定要刪除這個行程嗎？')) {
+                tripData[currentDayIndex].events = tripData[currentDayIndex].events.filter(e => e.id !== eventId);
+                saveData();
+                renderCurrentDayDetails();
+                renderTabs();
+            }
+        }
+
+        // 表單送出 (新增或更新行程)
+        function handleFormSubmit(e) {
+            e.preventDefault();
+
+            const eventId = document.getElementById('eventId').value;
+            const time = document.getElementById('eventTime').value;
+            const category = document.getElementById('eventCategory').value;
+            const title = document.getElementById('eventTitle').value.trim();
+            const costVal = document.getElementById('eventCost').value;
+            const cost = costVal !== '' ? parseFloat(costVal) : 0;
+            const notes = document.getElementById('eventNotes').value.trim();
+
+            if (eventId) {
+                // 更新編輯的行程
+                const evt = tripData[currentDayIndex].events.find(e => e.id === eventId);
+                if (evt) {
+                    evt.time = time;
+                    evt.category = category;
+                    evt.title = title;
+                    evt.cost = cost;
+                    evt.notes = notes;
+                }
+            } else {
+                // 新增行程
+                tripData[currentDayIndex].events.push({
+                    id: 'evt_' + Date.now(),
+                    time,
+                    category,
+                    title,
+                    cost,
+                    notes,
+                    completed: false
+                });
+            }
+
+            saveData();
+            closeEventModal();
+            render();
+        }
+
+        // 更新頂部統計數據看板
+        function updateStats() {
+            const totalDays = tripData.length;
+            let totalEvents = 0;
+            let totalCost = 0;
+
+            tripData.forEach(day => {
+                totalEvents += day.events.length;
+                day.events.forEach(evt => {
+                    if (evt.cost) totalCost += evt.cost;
+                });
+            });
+
+            document.getElementById('statDays').textContent = `${totalDays} 天`;
+            document.getElementById('statEvents').textContent = `${totalEvents} 個`;
+            document.getElementById('statCost').textContent = `NT$ ${totalCost.toLocaleString()}`;
+        }
+
+        // 匯出 JSON 檔
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tripData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `my_travel_plan_${new Date().toISOString().slice(0, 10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        // 匯入 JSON 檔
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (Array.isArray(importedData)) {
+                        if (confirm('匯入新的行程將會覆蓋當前資料，確定要繼續嗎？')) {
+                            tripData = importedData;
+                            currentDayIndex = 0;
+                            saveData();
+                            render();
+                            alert('行程匯入成功！');
+                        }
+                    } else {
+                        alert('JSON 檔案格式不正確！');
+                    }
+                } catch (err) {
+                    alert('無法讀取該 JSON 檔案！');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Reset input
+        }
+
+        // 清空重置所有資料
+        function resetAllData() {
+            if (confirm('⚠️ 警告：確定要清空所有行程資料嗎？此動作無法復原。')) {
+                localStorage.removeItem('travel_planner_data');
+                tripData = [...DEFAULT_DATA];
+                currentDayIndex = 0;
+                saveData();
+                render();
+            }
+        }
+
+        // HTML 轉義工具（防止 XSS）
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
