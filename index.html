@@ -232,10 +232,16 @@
             <form id="itemForm" onsubmit="handleFormSubmit(event)" class="p-5 space-y-4">
                 <input type="hidden" id="editItemId">
 
-                <!-- 項目標題 -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">行程名稱 <span class="text-red-500">*</span></label>
-                    <input type="text" id="itemTitle" required placeholder="例如：景福宮韓服體驗 / 弘大甜點店" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-400">
+                <!-- 項目標題與地點 -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">行程名稱 <span class="text-red-500">*</span></label>
+                        <input type="text" id="itemTitle" required placeholder="例如：景福宮韓服體驗" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">地點 / 地址</label>
+                        <input type="text" id="itemLocation" placeholder="例如：首爾特別市鐘路區" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-400">
+                    </div>
                 </div>
 
                 <!-- 時間區間 -->
@@ -250,7 +256,7 @@
                     </div>
                 </div>
 
-                <!-- 類別與預算 (支援幣別下拉選單) -->
+                <!-- 類別與預算 -->
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">類別</label>
@@ -282,7 +288,7 @@
                 <!-- 詳細備註 -->
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">詳細備註 / 事項</label>
-                    <textarea id="itemNotes" rows="3" placeholder="填寫地址、預約號碼、注意事項等..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"></textarea>
+                    <textarea id="itemNotes" rows="3" placeholder="填寫門票號碼、注意事項等..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"></textarea>
                 </div>
 
                 <!-- 相關連結 (多個) -->
@@ -437,7 +443,6 @@
             document.documentElement.style.setProperty('--scroll-thumb-hover', t.thumbHover);
             document.getElementById('appBody').style.backgroundColor = t.mainBg;
 
-            // 更新按鈕樣式
             const addDayBtn = document.getElementById('addDayBtn');
             addDayBtn.className = `px-4 py-2 ${t.primaryBtn} rounded-xl hover:opacity-90 transition shadow-sm font-medium flex items-center gap-2`;
 
@@ -507,6 +512,7 @@
                                     {
                                         id: 'item_1',
                                         title: '抵達仁川機場 & 辦理入住',
+                                        location: '仁川國際機場',
                                         startTime: '11:30',
                                         endTime: '13:00',
                                         category: 'transport',
@@ -643,13 +649,12 @@
             }
         }
 
-        // --- 天數 (Days) 管理 (含日期自動接續功能) ---
+        // --- 天數 (Days) 管理 (含日期自動接續) ---
         function addDay() {
             const proj = getCurrentProject();
             const newDayNum = proj.days.length + 1;
             
             let nextDateStr = '';
-            // 如果前一天有設定日期，自動幫忙加一天
             if (proj.days.length > 0) {
                 const prevDate = proj.days[proj.days.length - 1].date;
                 if (prevDate) {
@@ -688,7 +693,7 @@
             }
         }
 
-        // 計算並統計當天總花費 (支援幣別加總)
+        // 計算並統計當天總花費
         function calculateDayTotalCost(items) {
             if (!items || items.length === 0) return '0';
 
@@ -716,7 +721,7 @@
                 .join(' + ');
         }
 
-        // --- 核心 UI 渲染 ---
+        // --- 核心 UI 渲染 (按實際開始時間排序) ---
         function renderApp() {
             const proj = getCurrentProject();
 
@@ -795,7 +800,14 @@
                     </div>
                 `;
             } else {
-                currentDay.items.forEach((item) => {
+                // 核心更新：依開始時間進行排序（未填寫時間的排最後面）
+                const sortedItems = [...currentDay.items].sort((a, b) => {
+                    if (!a.startTime) return 1;
+                    if (!b.startTime) return -1;
+                    return a.startTime.localeCompare(b.startTime);
+                });
+
+                sortedItems.forEach((item) => {
                     const itemEl = createItemElement(item);
                     timeline.appendChild(itemEl);
                 });
@@ -870,6 +882,7 @@
                                 <h4 class="font-bold text-slate-800 text-base ${item.completed ? 'line-through text-slate-400' : ''}">${escapeHtml(item.title)}</h4>
                             </div>
 
+                            ${item.location ? `<div class="text-xs text-slate-500 mb-1"><i class="fa-solid fa-location-dot text-rose-500 mr-1"></i>${escapeHtml(item.location)}</div>` : ''}
                             ${costDisplay ? `<div class="text-xs font-medium text-amber-700 mb-1"><i class="fa-solid fa-coins mr-1"></i>${escapeHtml(costDisplay)}</div>` : ''}
                             ${item.notes ? `<p class="text-xs text-slate-600 whitespace-pre-line leading-relaxed mt-1 bg-slate-50 p-2 rounded-lg border border-slate-100">${escapeHtml(item.notes)}</p>` : ''}
                             ${linksHTML}
@@ -930,6 +943,7 @@
             document.getElementById('modalTitle').textContent = '編輯行程項目';
             document.getElementById('editItemId').value = item.id;
             document.getElementById('itemTitle').value = item.title;
+            document.getElementById('itemLocation').value = item.location || '';
             document.getElementById('itemStartTime').value = item.startTime || '';
             document.getElementById('itemEndTime').value = item.endTime || '';
             document.getElementById('itemCategory').value = item.category || 'spot';
@@ -955,6 +969,7 @@
 
             const itemId = document.getElementById('editItemId').value;
             const title = document.getElementById('itemTitle').value.trim();
+            const location = document.getElementById('itemLocation').value.trim();
             const startTime = document.getElementById('itemStartTime').value;
             const endTime = document.getElementById('itemEndTime').value;
             const category = document.getElementById('itemCategory').value;
@@ -976,6 +991,7 @@
                 const item = day.items.find(i => i.id === itemId);
                 if (item) {
                     item.title = title;
+                    item.location = location;
                     item.startTime = startTime;
                     item.endTime = endTime;
                     item.category = category;
@@ -989,6 +1005,7 @@
                 const newItem = {
                     id: 'item_' + Date.now(),
                     title,
+                    location,
                     startTime,
                     endTime,
                     category,
